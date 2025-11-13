@@ -6,7 +6,7 @@ import crypto from "crypto";
 ponder.on("LeveragedToken:Mint", async ({ event, context }) => {
   const { minter, to, baseAmount, ltAmount } = event.args;
 
-  await context.db.insert(schema.trades).values({
+  await context.db.insert(schema.trade).values({
     id: crypto.randomUUID(),
     isBuy: true,
     timestamp: event.block.timestamp,
@@ -22,7 +22,7 @@ ponder.on("LeveragedToken:Mint", async ({ event, context }) => {
 ponder.on("LeveragedToken:Redeem", async ({ event, context }) => {
   const { sender, to, ltAmount, baseAmount } = event.args;
 
-  await context.db.insert(schema.trades).values({
+  await context.db.insert(schema.trade).values({
     id: crypto.randomUUID(),
     isBuy: false,
     timestamp: event.block.timestamp,
@@ -38,7 +38,7 @@ ponder.on("LeveragedToken:Redeem", async ({ event, context }) => {
 ponder.on("LeveragedToken:ExecuteRedeem", async ({ event, context }) => {
   const { user, ltAmount, baseAmount } = event.args;
 
-  await context.db.insert(schema.trades).values({
+  await context.db.insert(schema.trade).values({
     id: crypto.randomUUID(),
     isBuy: false,
     timestamp: event.block.timestamp,

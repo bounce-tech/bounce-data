@@ -1,6 +1,6 @@
-import { onchainTable } from "ponder";
+import { onchainTable, relations } from "ponder";
 
-export const leveragedTokens = onchainTable("leveragedTokens", (t) => ({
+export const leveragedToken = onchainTable("leveragedToken", (t) => ({
   address: t.hex().primaryKey(),
   creator: t.hex().notNull(),
   marketId: t.integer().notNull(),
@@ -8,7 +8,7 @@ export const leveragedTokens = onchainTable("leveragedTokens", (t) => ({
   isLong: t.boolean().notNull(),
 }));
 
-export const trades = onchainTable("trades", (t) => ({
+export const trade = onchainTable("trade", (t) => ({
   id: t.text().primaryKey(),
   isBuy: t.boolean().notNull(),
   leveragedToken: t.hex().notNull(),
@@ -17,4 +17,18 @@ export const trades = onchainTable("trades", (t) => ({
   recipient: t.hex().notNull(),
   baseAssetAmount: t.bigint().notNull(),
   leveragedTokenAmount: t.bigint().notNull(),
+}));
+
+export const leveragedTokensRelations = relations(
+  leveragedToken,
+  ({ many }) => ({
+    trades: many(trade),
+  })
+);
+
+export const tradesRelations = relations(trade, ({ one }) => ({
+  leveragedToken: one(leveragedToken, {
+    fields: [trade.leveragedToken],
+    references: [leveragedToken.address],
+  }),
 }));

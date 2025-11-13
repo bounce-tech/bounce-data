@@ -5,7 +5,7 @@ import schema from "ponder:schema";
 ponder.on("Factory:CreateLeveragedToken", async ({ event, context }) => {
   const { creator, token, marketId, targetLeverage, isLong } = event.args;
 
-  await context.db.insert(schema.leveragedTokens).values({
+  await context.db.insert(schema.leveragedToken).values({
     address: token,
     creator: creator,
     marketId: marketId,
