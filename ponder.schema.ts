@@ -1,7 +1,16 @@
 import { onchainTable } from "ponder";
 
-export const leveragedTokenMint = onchainTable("leveragedTokenMint", (t) => ({
+export const leveragedTokens = onchainTable("leveragedTokens", (t) => ({
+  address: t.hex().primaryKey(),
+  creator: t.hex().notNull(),
+  marketId: t.integer().notNull(),
+  targetLeverage: t.bigint().notNull(),
+  isLong: t.boolean().notNull(),
+}));
+
+export const trades = onchainTable("trades", (t) => ({
   id: t.text().primaryKey(),
+  isBuy: t.boolean().notNull(),
   leveragedToken: t.hex().notNull(),
   timestamp: t.bigint().notNull(),
   sender: t.hex().notNull(),
