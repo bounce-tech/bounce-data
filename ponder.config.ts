@@ -31,13 +31,13 @@ export default createConfig({
         ),
         parameter: "token",
       }),
-
       startBlock: 16731647,
     },
     Factory: {
       chain: "hyperEvm",
       abi: FactoryAbi,
       address: FACTORY_ADDRESS,
+      startBlock: 16731647,
     },
   },
 });
