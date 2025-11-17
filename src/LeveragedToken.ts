@@ -49,3 +49,17 @@ ponder.on("LeveragedToken:ExecuteRedeem", async ({ event, context }) => {
     leveragedTokenAmount: ltAmount,
   });
 });
+
+// event Transfer(address indexed from, address indexed to, uint256 value);
+ponder.on("LeveragedToken:Transfer", async ({ event, context }) => {
+  const { from, to, value } = event.args;
+
+  await context.db.insert(schema.transfer).values({
+    id: crypto.randomUUID(),
+    timestamp: event.block.timestamp,
+    leveragedToken: event.log.address,
+    sender: from,
+    recipient: to,
+    amount: value,
+  });
+});
