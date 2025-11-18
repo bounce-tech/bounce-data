@@ -31,6 +31,20 @@ export const transfer = onchainTable("transfer", (t) => ({
   amount: t.bigint().notNull(),
 }));
 
+// export const referral = onchainTable("referral", (t) => ({
+//   id: t.text().primaryKey(),
+//   user: t.hex().notNull(),
+//   code: t.text().notNull(),
+//   referrer: t.hex().notNull(),
+// }));
+
+// export const rebate = onchainTable("rebate", (t) => ({
+//   id: t.text().primaryKey(),
+//   sender: t.hex().notNull(),
+//   to: t.hex().notNull(),
+//   rebate: t.bigint().notNull(),
+// }));
+
 export const leveragedTokensRelations = relations(
   leveragedToken,
   ({ many }) => ({

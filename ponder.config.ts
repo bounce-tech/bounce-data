@@ -3,8 +3,10 @@ import { createConfig, factory } from "ponder";
 import { LeveragedTokenAbi } from "./abis/LeveragedTokenAbi";
 import { parseAbiItem } from "viem";
 import { FactoryAbi } from "./abis/FactoryAbi";
+import { ReferralsAbi } from "./abis/ReferralsAbi";
 
 const FACTORY_ADDRESS = "0xaBD5D943b4Bb1D25C6639dD264243b246CC3aA51";
+export const REFERRALS_ADDRESS = "0x82A4063f4d05bb7BF18DF314DC5B63b655E86cBD";
 
 export default createConfig({
   chains: {
@@ -39,5 +41,11 @@ export default createConfig({
       address: FACTORY_ADDRESS,
       startBlock: 16731647,
     },
+    // Referrals: {
+    //   chain: "hyperEvm",
+    //   abi: ReferralsAbi,
+    //   address: REFERRALS_ADDRESS,
+    //   startBlock: 16731647,
+    // },
   },
 });
