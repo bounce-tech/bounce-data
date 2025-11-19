@@ -23,14 +23,22 @@ app.get("/stats", async (c) => {
       sql`${schema.trade.leveragedToken} = ${schema.leveragedToken.address}`
     );
 
+  const uniqueAssetsResult = await db
+    .select({
+      count: sql<number>`count(distinct ${schema.leveragedToken.marketId})`,
+    })
+    .from(schema.leveragedToken);
+
   const marginVolume = Number(result[0]?.marginVolume || 0);
   const notionalVolume = Number(result[0]?.notionalVolume || 0);
   const averageLeverage = notionalVolume / marginVolume;
+  const uniqueAssets = uniqueAssetsResult[0]?.count || 0;
 
   return c.json({
     marginVolume: marginVolume,
     notionalVolume: notionalVolume,
     averageLeverage: averageLeverage,
+    supportedAssets: uniqueAssets,
   });
 });
 
