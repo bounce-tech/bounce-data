@@ -8,6 +8,9 @@ This project indexes the **Bounce Tech leveraged token protocol**, a decentraliz
 
 - **Leveraged Tokens**: Token metadata including address, creator, market ID, leverage settings, and ERC-20 properties (symbol, name, decimals)
 - **Trades**: All mint and redeem operations for leveraged tokens
+- **Transfers**: ERC-20 token transfers for leveraged tokens
+- **Referrals**: User referral registrations and relationships
+- **Rebates**: Rebate claims from the referral system
 
 ## Setup
 
@@ -37,6 +40,7 @@ The dev server will:
 - Start indexing from the configured start block
 - Serve the GraphQL API at `http://localhost:42069/graphql`
 - Serve SQL over HTTP at `http://localhost:42069/sql`
+- Serve custom API endpoints (including `/stats`) at `http://localhost:42069`
 
 ## Schema
 
@@ -66,10 +70,41 @@ Stores all mint and redeem operations.
 - `baseAssetAmount`: Amount of base asset
 - `leveragedTokenAmount`: Amount of leveraged tokens
 
+### `transfer`
+
+Stores ERC-20 token transfers for leveraged tokens.
+
+- `id` (primary key): Unique transfer identifier
+- `timestamp`: Block timestamp
+- `leveragedToken`: Address of the leveraged token (references `leveragedToken.address`)
+- `sender`: Address sending the tokens
+- `recipient`: Address receiving the tokens
+- `amount`: Amount of tokens transferred
+
+### `referral`
+
+Stores user referral registrations.
+
+- `id` (primary key): Unique referral identifier
+- `user`: Address of the user who joined with a referral code
+- `code`: Referral code used
+- `referrer`: Address of the referrer
+
+### `rebate`
+
+Stores rebate claims from the referral system.
+
+- `id` (primary key): Unique rebate identifier
+- `sender`: Address that claimed the rebate
+- `to`: Address that received the rebate
+- `rebate`: Amount of rebate claimed
+
 ### Relations
 
 - Each `leveragedToken` can have many `trade` records
 - Each `trade` belongs to one `leveragedToken`
+- Each `leveragedToken` can have many `transfer` records
+- Each `transfer` belongs to one `leveragedToken`
 
 ## Indexing
 
@@ -80,9 +115,17 @@ The project indexes events from the Bounce Tech protocol:
    - `CreateLeveragedToken`: Creates a new leveraged token record and reads token metadata (symbol, name, decimals) from the contract
 
 2. **Bounce Tech LeveragedToken Contracts** (factory pattern)
+
    - `Mint`: Records buy trades
    - `Redeem`: Records sell trades
    - `ExecuteRedeem`: Records executed redemption trades
+   - `Transfer`: Records ERC-20 token transfers
+
+3. **Bounce Tech Referrals Contract** (`0x82A4063f4d05bb7BF18DF314DC5B63b655E86cBD`)
+   - `JoinWithReferral`: Records when users join with a referral code
+   - `ClaimRebate`: Records rebate claims from the referral system
+
+The indexer uses block-based indexing starting from block `16731647` and processes new blocks in real-time.
 
 ## Querying
 
@@ -115,6 +158,36 @@ query MyQuery {
 ### SQL over HTTP
 
 Query tables directly using SQL over HTTP at `http://localhost:42069/sql`.
+
+### Stats Endpoint
+
+Get aggregated protocol statistics at `http://localhost:42069/stats`.
+
+The endpoint returns:
+
+- `marginVolume`: Total margin volume (in base asset units)
+- `notionalVolume`: Total notional volume (in base asset units)
+- `averageLeverage`: Average leverage across all trades
+- `supportedAssets`: Number of unique market IDs
+- `leveragedTokens`: Total number of leveraged tokens created
+- `uniqueUsers`: Number of unique users who have traded
+- `totalValueLocked`: Current TVL across all leveraged tokens
+- `openInterest`: Current open interest across all leveraged tokens
+
+Example response:
+
+```json
+{
+  "marginVolume": 1234567.89,
+  "notionalVolume": 12345678.9,
+  "averageLeverage": 10.0,
+  "supportedAssets": 5,
+  "leveragedTokens": 10,
+  "uniqueUsers": 150,
+  "totalValueLocked": 500000.0,
+  "openInterest": 5000000.0
+}
+```
 
 ## Scripts
 
