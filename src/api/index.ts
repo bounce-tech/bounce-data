@@ -35,11 +35,18 @@ app.get("/stats", async (c) => {
     })
     .from(schema.leveragedToken);
 
+  const uniqueUsersResult = await db
+    .select({
+      count: sql<number>`count(distinct ${schema.trade.recipient})`,
+    })
+    .from(schema.trade);
+
   const marginVolume = Number(result[0]?.marginVolume || 0);
   const notionalVolume = Number(result[0]?.notionalVolume || 0);
   const averageLeverage = notionalVolume / marginVolume;
   const uniqueAssets = uniqueAssetsResult[0]?.count || 0;
   const leveragedTokens = leveragedTokensResult[0]?.count || 0;
+  const uniqueUsers = uniqueUsersResult[0]?.count || 0;
 
   return c.json({
     marginVolume: marginVolume,
@@ -47,6 +54,7 @@ app.get("/stats", async (c) => {
     averageLeverage: averageLeverage,
     supportedAssets: uniqueAssets,
     leveragedTokens: leveragedTokens,
+    uniqueUsers: uniqueUsers,
   });
 });
 
