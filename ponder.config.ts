@@ -41,11 +41,11 @@ export default createConfig({
       address: FACTORY_ADDRESS,
       startBlock: 16731647,
     },
-    // Referrals: {
-    //   chain: "hyperEvm",
-    //   abi: ReferralsAbi,
-    //   address: REFERRALS_ADDRESS,
-    //   startBlock: 16731647,
-    // },
+    Referrals: {
+      chain: "hyperEvm",
+      abi: ReferralsAbi,
+      address: REFERRALS_ADDRESS,
+      startBlock: 16731647,
+    },
   },
 });
