@@ -16,7 +16,7 @@ app.use(
       if (origin && /^https:\/\/[^/]+\.web\.app$/.test(origin)) return origin;
       return null;
     },
-    allowMethods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowMethods: ["GET", "POST", "OPTIONS"],
   })
 );
 
