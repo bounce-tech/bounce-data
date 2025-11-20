@@ -17,6 +17,7 @@ app.use(
       return null;
     },
     allowMethods: ["GET", "POST", "OPTIONS"],
+    credentials: true,
   })
 );
 
