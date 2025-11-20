@@ -173,6 +173,7 @@ The endpoint returns:
 - `uniqueUsers`: Number of unique users who have traded
 - `totalValueLocked`: Current TVL across all leveraged tokens
 - `openInterest`: Current open interest across all leveraged tokens
+- `totalTrades`: Total number of trades (mints and redeems)
 
 Example response:
 
@@ -185,7 +186,8 @@ Example response:
   "leveragedTokens": 10,
   "uniqueUsers": 150,
   "totalValueLocked": 500000.0,
-  "openInterest": 5000000.0
+  "openInterest": 5000000.0,
+  "totalTrades": 1234
 }
 ```
 

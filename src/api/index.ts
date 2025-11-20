@@ -21,6 +21,7 @@ app.get("/stats", async (c) => {
       marginVolume: sql<string>`sum(${schema.trade.baseAssetAmount}) / 1000000`,
       notionalVolume: sql<string>`sum(${schema.trade.baseAssetAmount} * ${schema.leveragedToken.targetLeverage}) / 1000000000000000000000000`,
       uniqueUsers: sql<number>`count(distinct ${schema.trade.recipient})`,
+      totalTrades: sql<number>`count(*)`,
     })
     .from(schema.trade)
     .leftJoin(
@@ -67,6 +68,7 @@ app.get("/stats", async (c) => {
   const uniqueAssets = leveragedTokenResult[0]?.supportedAssets || 0;
   const leveragedTokens = leveragedTokenResult[0]?.leveragedTokens || 0;
   const uniqueUsers = tradeResult[0]?.uniqueUsers || 0;
+  const totalTrades = tradeResult[0]?.totalTrades || 0;
 
   // Returning results
   return c.json({
@@ -78,6 +80,7 @@ app.get("/stats", async (c) => {
     uniqueUsers: uniqueUsers,
     totalValueLocked: tvl,
     openInterest: openInterest,
+    totalTrades: totalTrades,
   });
 });
 
