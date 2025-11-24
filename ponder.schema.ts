@@ -20,6 +20,7 @@ export const trade = onchainTable("trade", (t) => ({
   recipient: t.hex().notNull(),
   baseAssetAmount: t.bigint().notNull(),
   leveragedTokenAmount: t.bigint().notNull(),
+  txHash: t.hex().notNull(),
 }));
 
 export const transfer = onchainTable("transfer", (t) => ({
@@ -29,6 +30,7 @@ export const transfer = onchainTable("transfer", (t) => ({
   sender: t.hex().notNull(),
   recipient: t.hex().notNull(),
   amount: t.bigint().notNull(),
+  txHash: t.hex().notNull(),
 }));
 
 export const referral = onchainTable("referral", (t) => ({
