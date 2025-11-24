@@ -15,6 +15,7 @@ ponder.on("LeveragedToken:Mint", async ({ event, context }) => {
     recipient: to,
     baseAssetAmount: baseAmount,
     leveragedTokenAmount: ltAmount,
+    txHash: event.transaction.hash,
   });
 });
 
@@ -31,6 +32,7 @@ ponder.on("LeveragedToken:Redeem", async ({ event, context }) => {
     recipient: to,
     baseAssetAmount: baseAmount,
     leveragedTokenAmount: ltAmount,
+    txHash: event.transaction.hash,
   });
 });
 
@@ -47,6 +49,7 @@ ponder.on("LeveragedToken:ExecuteRedeem", async ({ event, context }) => {
     recipient: user,
     baseAssetAmount: baseAmount,
     leveragedTokenAmount: ltAmount,
+    txHash: event.transaction.hash,
   });
 });
 
@@ -61,5 +64,6 @@ ponder.on("LeveragedToken:Transfer", async ({ event, context }) => {
     sender: from,
     recipient: to,
     amount: value,
+    txHash: event.transaction.hash,
   });
 });
