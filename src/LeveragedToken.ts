@@ -23,6 +23,12 @@ ponder.on("LeveragedToken:Mint", async ({ event, context }) => {
 ponder.on("LeveragedToken:Redeem", async ({ event, context }) => {
   const { sender, to, ltAmount, baseAmount } = event.args;
 
+  if (!event.transaction) {
+    console.error("No transaction found");
+    console.log(JSON.stringify(event, null, 2));
+    return;
+  }
+
   await context.db.insert(schema.trade).values({
     id: crypto.randomUUID(),
     isBuy: false,
