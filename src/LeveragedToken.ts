@@ -15,19 +15,13 @@ ponder.on("LeveragedToken:Mint", async ({ event, context }) => {
     recipient: to,
     baseAssetAmount: baseAmount,
     leveragedTokenAmount: ltAmount,
-    txHash: event.transaction.hash,
+    txHash: event.transaction?.hash ?? "",
   });
 });
 
 // event Redeem(address indexed sender, address indexed to, uint256 ltAmount, uint256 baseAmount);
 ponder.on("LeveragedToken:Redeem", async ({ event, context }) => {
   const { sender, to, ltAmount, baseAmount } = event.args;
-
-  if (!event.transaction) {
-    console.error("No transaction found");
-    console.log(JSON.stringify(event, null, 2));
-    return;
-  }
 
   await context.db.insert(schema.trade).values({
     id: crypto.randomUUID(),
@@ -38,7 +32,7 @@ ponder.on("LeveragedToken:Redeem", async ({ event, context }) => {
     recipient: to,
     baseAssetAmount: baseAmount,
     leveragedTokenAmount: ltAmount,
-    txHash: event.transaction.hash,
+    txHash: event.transaction?.hash ?? "",
   });
 });
 
@@ -55,7 +49,7 @@ ponder.on("LeveragedToken:ExecuteRedeem", async ({ event, context }) => {
     recipient: user,
     baseAssetAmount: baseAmount,
     leveragedTokenAmount: ltAmount,
-    txHash: event.transaction.hash,
+    txHash: event.transaction?.hash ?? "",
   });
 });
 
@@ -70,6 +64,6 @@ ponder.on("LeveragedToken:Transfer", async ({ event, context }) => {
     sender: from,
     recipient: to,
     amount: value,
-    txHash: event.transaction.hash,
+    txHash: event.transaction?.hash ?? "",
   });
 });
