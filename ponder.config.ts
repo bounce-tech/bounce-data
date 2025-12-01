@@ -9,6 +9,8 @@ export const LT_HELPER_ADDRESS = "0x560149730F1cb1594F15cF2186b4A86eC761c64D";
 export const FACTORY_ADDRESS = "0xaBD5D943b4Bb1D25C6639dD264243b246CC3aA51";
 export const REFERRALS_ADDRESS = "0x82A4063f4d05bb7BF18DF314DC5B63b655E86cBD";
 
+const startBlock = 16729000;
+
 export default createConfig({
   chains: {
     hyperEvm: {
@@ -20,7 +22,7 @@ export default createConfig({
     NewBlock: {
       chain: "hyperEvm",
       interval: 1,
-      startBlock: 18496592,
+      startBlock,
     },
   },
   contracts: {
@@ -34,19 +36,19 @@ export default createConfig({
         ),
         parameter: "token",
       }),
-      startBlock: 16731647,
+      startBlock,
     },
     Factory: {
       chain: "hyperEvm",
       abi: FactoryAbi,
       address: FACTORY_ADDRESS,
-      startBlock: 16731647,
+      startBlock,
     },
     Referrals: {
       chain: "hyperEvm",
       abi: ReferralsAbi,
       address: REFERRALS_ADDRESS,
-      startBlock: 16731647,
+      startBlock,
     },
   },
 });
