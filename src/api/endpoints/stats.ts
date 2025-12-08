@@ -6,13 +6,13 @@ import { LeveragedTokenHelperAbi } from "../../../abis/LeveragedTokenHelperAbi";
 import { formatUnits } from "viem";
 
 // Base asset has 6 decimals (USDC)
-const BASE_ASSET_DECIMALS = 1000000; // 1e6
+const BASE_ASSET_DECIMALS = 1e6;
 
 // Leverage is stored with 18 decimals, total scaling factor for notional volume calculation
-const NOTIONAL_VOLUME_SCALE = 1000000000000000000000000; // 1e24 (1e6 * 1e18)
+const NOTIONAL_VOLUME_SCALE = 1e24; // 1e6 * 1e18
 
 // Leverage precision factor
-const LEVERAGE_DECIMALS = 1000000000000000000; // 1e18
+const LEVERAGE_DECIMALS = 1e18;
 
 const getStats = async () => {
   // Querying database tables
