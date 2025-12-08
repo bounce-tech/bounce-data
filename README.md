@@ -40,7 +40,7 @@ The dev server will:
 - Start indexing from the configured start block
 - Serve the GraphQL API at `http://localhost:42069/graphql`
 - Serve SQL over HTTP at `http://localhost:42069/sql`
-- Serve custom API endpoints (including `/stats`) at `http://localhost:42069`
+- Serve custom API endpoints (including `/stats` and `/traded-lts`) at `http://localhost:42069`
 
 ## Schema
 
@@ -159,11 +159,41 @@ query MyQuery {
 
 Query tables directly using SQL over HTTP at `http://localhost:42069/sql`.
 
-### Stats Endpoint
+### API
+
+All API endpoints follow a consistent response structure.
+
+#### Response Format
+
+All API endpoints return responses in the following format:
+
+**Success Response:**
+
+```json
+{
+  "status": "success",
+  "data": {
+    /* endpoint-specific data */
+  },
+  "error": null
+}
+```
+
+**Error Response:**
+
+```json
+{
+  "status": "error",
+  "data": null,
+  "error": "Error message describing what went wrong"
+}
+```
+
+#### Stats Endpoint
 
 Get aggregated protocol statistics at `http://localhost:42069/stats`.
 
-The endpoint returns:
+**Response Data:**
 
 - `marginVolume`: Total margin volume (in base asset units)
 - `notionalVolume`: Total notional volume (in base asset units)
@@ -175,21 +205,71 @@ The endpoint returns:
 - `openInterest`: Current open interest across all leveraged tokens
 - `totalTrades`: Total number of trades (mints and redeems)
 
-Example response:
+**Example Response:**
 
 ```json
 {
-  "marginVolume": 1234567.89,
-  "notionalVolume": 12345678.9,
-  "averageLeverage": 10.0,
-  "supportedAssets": 5,
-  "leveragedTokens": 10,
-  "uniqueUsers": 150,
-  "totalValueLocked": 500000.0,
-  "openInterest": 5000000.0,
-  "totalTrades": 1234
+  "status": "success",
+  "data": {
+    "marginVolume": 1234567.89,
+    "notionalVolume": 12345678.9,
+    "averageLeverage": 10.0,
+    "supportedAssets": 5,
+    "leveragedTokens": 10,
+    "uniqueUsers": 150,
+    "totalValueLocked": 500000.0,
+    "openInterest": 5000000.0,
+    "totalTrades": 1234
+  },
+  "error": null
 }
 ```
+
+#### Traded LTs Endpoint
+
+Get the list of leveraged tokens that a user has traded at `http://localhost:42069/traded-lts`.
+
+**Query Parameters:**
+
+- `user` (required): Ethereum address of the user
+
+**Response Data:**
+
+- `tradedLts`: Array of unique leveraged token addresses that the user has received transfers for
+
+**Example Request:**
+
+```
+GET http://localhost:42069/traded-lts?user=0x1234567890123456789012345678901234567890
+```
+
+**Example Success Response:**
+
+```json
+{
+  "status": "success",
+  "data": [
+    "0x1eefbacfea06d786ce012c6fc861bec6c7a828c1",
+    "0x22a7a4a38a97ca44473548036f22a7bcd2c25457",
+    "0x2525f0794a927df477292bee1bc1fd57b8a82614"
+  ],
+  "error": null
+}
+```
+
+**Example Error Response:**
+
+```json
+{
+  "status": "error",
+  "data": null,
+  "error": "Missing user parameter"
+}
+```
+
+**Error Responses:**
+
+- `400 Bad Request`: Missing or invalid user address parameter
 
 ## Scripts
 
