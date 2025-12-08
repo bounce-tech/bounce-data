@@ -44,12 +44,12 @@ const getCostAndRealized = (
     if (action.type === TradeType.REDEEM) {
       // When redeeming, reduce position but keep same average cost
       const tradeAmount = action.leveragedTokenAmount;
+      if (tradeAmount === 0) continue;
       totalAmount -= tradeAmount;
       // Update total cost based on remaining position
       totalCost = totalAmount * averageCost;
 
-      if (action.leveragedTokenAmount === 0) continue;
-      const currentPrice = action.baseAmount / action.leveragedTokenAmount;
+      const currentPrice = action.baseAmount / tradeAmount;
       const priceDifference = currentPrice - averageCost;
       realized += priceDifference * tradeAmount;
     }
