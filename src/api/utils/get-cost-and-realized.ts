@@ -10,11 +10,7 @@ const getCostAndRealized = (
   let averageCost = 0;
   let realized = 0;
 
-  const sortedActions = actions.sort(
-    (a, b) => a.time.getTime() - b.time.getTime()
-  );
-
-  for (const action of sortedActions) {
+  for (const action of actions) {
     if (action.type === TransferType.TRANSFER_OUT) {
       if (totalAmount <= 0) {
         // Nothing to transfer out, skip to next trade to avoid division by zero
