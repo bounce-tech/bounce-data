@@ -235,7 +235,7 @@ Get the list of leveraged tokens that a user has traded at `http://localhost:420
 
 **Response Data:**
 
-- `tradedLts`: Array of unique leveraged token addresses that the user has received transfers for
+- Array of unique leveraged token addresses that the user has received transfers for
 
 **Example Request:**
 
