@@ -40,7 +40,7 @@ The dev server will:
 - Start indexing from the configured start block
 - Serve the GraphQL API at `http://localhost:42069/graphql`
 - Serve SQL over HTTP at `http://localhost:42069/sql`
-- Serve custom API endpoints (including `/stats` and `/traded-lts`) at `http://localhost:42069`
+- Serve custom API endpoints (including `/stats`, `/traded-lts`, and `/user-pnl`) at `http://localhost:42069`
 
 ## Schema
 
@@ -253,6 +253,71 @@ GET http://localhost:42069/traded-lts?user=0x12345678901234567890123456789012345
     "0x22a7a4a38a97ca44473548036f22a7bcd2c25457",
     "0x2525f0794a927df477292bee1bc1fd57b8a82614"
   ],
+  "error": null
+}
+```
+
+**Example Error Response:**
+
+```json
+{
+  "status": "error",
+  "data": null,
+  "error": "Missing user parameter"
+}
+```
+
+**Error Responses:**
+
+- `400 Bad Request`: Missing or invalid user address parameter
+
+#### User PnL Endpoint
+
+Get profit and loss (PnL) information for a user across all leveraged tokens at `http://localhost:42069/user-pnl`.
+
+**Query Parameters:**
+
+- `user` (required): Ethereum address of the user
+
+**Response Data:**
+
+- `realized`: Total realized PnL across all leveraged tokens (in base asset units)
+- `unrealized`: Total unrealized PnL across all leveraged tokens (in base asset units)
+- `leveragedTokens`: Array of PnL data for each leveraged token the user has traded:
+  - `leveragedToken`: Address of the leveraged token
+  - `realized`: Realized PnL for this leveraged token (in base asset units)
+  - `unrealized`: Unrealized PnL for this leveraged token (in base asset units)
+  - `unrealizedPercent`: Unrealized PnL as a percentage (e.g., 0.15 = 15%)
+
+**Example Request:**
+
+```
+GET http://localhost:42069/user-pnl?user=0x1234567890123456789012345678901234567890
+```
+
+**Example Success Response:**
+
+```json
+{
+  "status": "success",
+  "data": {
+    "realized": 1234.56,
+    "unrealized": -567.89,
+    "leveragedTokens": [
+      {
+        "leveragedToken": "0x1eefbacfea06d786ce012c6fc861bec6c7a828c1",
+        "realized": 500.0,
+        "unrealized": 200.0,
+        "unrealizedPercent": 0.4
+      },
+      {
+        "leveragedToken": "0x22a7a4a38a97ca44473548036f22a7bcd2c25457",
+        "realized": 734.56,
+        "unrealized": -767.89,
+        "unrealizedPercent": -1.045
+      }
+    ]
+  },
   "error": null
 }
 ```
