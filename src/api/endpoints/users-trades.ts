@@ -22,7 +22,7 @@ const getUsersTrades = async (user: Address, asset?: string) => {
       leveragedToken: schema.trade.leveragedToken,
     })
     .from(schema.trade)
-    .leftJoin(
+    .innerJoin(
       schema.leveragedToken,
       eq(schema.trade.leveragedToken, schema.leveragedToken.address)
     )
