@@ -56,6 +56,7 @@ Stores metadata for each leveraged token created by the factory.
 - `symbol`: ERC-20 symbol
 - `name`: ERC-20 name
 - `decimals`: ERC-20 decimals
+- `asset`: Base asset symbol
 
 ### `trade`
 
@@ -69,6 +70,7 @@ Stores all mint and redeem operations.
 - `recipient`: Address receiving the tokens
 - `baseAssetAmount`: Amount of base asset
 - `leveragedTokenAmount`: Amount of leveraged tokens
+- `txHash`: Transaction hash of the trade
 
 ### `transfer`
 
@@ -80,6 +82,7 @@ Stores ERC-20 token transfers for leveraged tokens.
 - `sender`: Address sending the tokens
 - `recipient`: Address receiving the tokens
 - `amount`: Amount of tokens transferred
+- `txHash`: Transaction hash of the transfer
 
 ### `referral`
 
@@ -279,15 +282,23 @@ Get all trades for a specific user at `http://localhost:42069/users-trades`.
 
 - `user` (required): Ethereum address of the user
 - `asset` (optional): Filter trades by asset (base asset symbol)
+- `leveragedTokenAddress` (optional): Filter trades by specific leveraged token address
+
+**Note:** You can combine `asset` and `leveragedTokenAddress` filters. If both are provided, trades must match both conditions.
 
 **Response Data:**
 
 - Array of trade objects, each containing:
-  - `timestamp`: Block timestamp of the trade
+  - `id`: Unique trade identifier
+  - `txHash`: Transaction hash of the trade
+  - `timestamp`: Block timestamp of the trade (as string, serialized from BigInt)
   - `isBuy`: `true` for mints (buys), `false` for redeems (sells)
   - `baseAssetAmount`: Amount of base asset (as string, serialized from BigInt)
   - `leveragedTokenAmount`: Amount of leveraged tokens (as string, serialized from BigInt)
   - `leveragedToken`: Address of the leveraged token
+  - `targetLeverage`: Target leverage of the leveraged token (as string, serialized from BigInt)
+  - `isLong`: Whether the leveraged token is a long position
+  - `asset`: Base asset symbol
 
 **Example Request:**
 
@@ -301,6 +312,18 @@ GET http://localhost:42069/users-trades?user=0x123456789012345678901234567890123
 GET http://localhost:42069/users-trades?user=0x1234567890123456789012345678901234567890&asset=USDT
 ```
 
+**Example Request with Leveraged Token Address Filter:**
+
+```
+GET http://localhost:42069/users-trades?user=0x1234567890123456789012345678901234567890&leveragedTokenAddress=0x1eefbacfea06d786ce012c6fc861bec6c7a828c1
+```
+
+**Example Request with Both Filters:**
+
+```
+GET http://localhost:42069/users-trades?user=0x1234567890123456789012345678901234567890&asset=USDT&leveragedTokenAddress=0x1eefbacfea06d786ce012c6fc861bec6c7a828c1
+```
+
 **Example Success Response:**
 
 ```json
@@ -308,18 +331,28 @@ GET http://localhost:42069/users-trades?user=0x123456789012345678901234567890123
   "status": "success",
   "data": [
     {
+      "id": "0xabc123...",
+      "txHash": "0xdef456...",
       "timestamp": "1704067200",
       "isBuy": true,
       "baseAssetAmount": "1000000000",
       "leveragedTokenAmount": "5000000000000000000",
-      "leveragedToken": "0x1eefbacfea06d786ce012c6fc861bec6c7a828c1"
+      "leveragedToken": "0x1eefbacfea06d786ce012c6fc861bec6c7a828c1",
+      "targetLeverage": "1000000000000000000",
+      "isLong": true,
+      "asset": "USDT"
     },
     {
+      "id": "0xghi789...",
+      "txHash": "0xjkl012...",
       "timestamp": "1704153600",
       "isBuy": false,
       "baseAssetAmount": "500000000",
       "leveragedTokenAmount": "2500000000000000000",
-      "leveragedToken": "0x1eefbacfea06d786ce012c6fc861bec6c7a828c1"
+      "leveragedToken": "0x1eefbacfea06d786ce012c6fc861bec6c7a828c1",
+      "targetLeverage": "1000000000000000000",
+      "isLong": true,
+      "asset": "USDT"
     }
   ],
   "error": null
@@ -338,7 +371,7 @@ GET http://localhost:42069/users-trades?user=0x123456789012345678901234567890123
 
 **Error Responses:**
 
-- `400 Bad Request`: Missing or invalid user address parameter
+- `400 Bad Request`: Missing or invalid user address parameter, or invalid leveraged token address parameter
 
 #### User PnL Endpoint
 

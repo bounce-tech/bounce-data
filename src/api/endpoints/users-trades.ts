@@ -3,12 +3,27 @@ import { eq, and } from "drizzle-orm";
 import { Address } from "viem";
 import schema from "ponder:schema";
 
-const getUsersTrades = async (user: Address, asset?: string) => {
+const getUsersTrades = async (
+  user: Address,
+  asset?: string,
+  leveragedTokenAddress?: Address
+) => {
   let where = null;
-  if (asset) {
+  if (asset && leveragedTokenAddress) {
+    where = and(
+      eq(schema.trade.recipient, user as Address),
+      eq(schema.leveragedToken.asset, asset),
+      eq(schema.leveragedToken.address, leveragedTokenAddress)
+    );
+  } else if (asset) {
     where = and(
       eq(schema.trade.recipient, user as Address),
       eq(schema.leveragedToken.asset, asset)
+    );
+  } else if (leveragedTokenAddress) {
+    where = and(
+      eq(schema.trade.recipient, user as Address),
+      eq(schema.leveragedToken.address, leveragedTokenAddress)
     );
   } else {
     where = eq(schema.trade.recipient, user as Address);

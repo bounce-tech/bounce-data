@@ -3,7 +3,7 @@ import schema from "ponder:schema";
 import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { client, graphql } from "ponder";
-import { isAddress } from "viem";
+import { Address, isAddress } from "viem";
 import getTradedLtsForUser from "./endpoints/traded-lts-for-user";
 import getStats from "./endpoints/stats";
 import formatError from "./utils/format-error";
@@ -58,7 +58,9 @@ app.get("/users-trades", async (c) => {
   if (!user) return c.json(formatError("Missing user parameter"), 400);
   if (!isAddress(user)) return c.json(formatError("Invalid user address"), 400);
   const asset = c.req.query("asset");
-  const trades = await getUsersTrades(user, asset);
+  const lt = c.req.query("leveragedTokenAddress");
+  if (lt && !isAddress(lt)) return c.json(formatError("Invalid lt"), 400);
+  const trades = await getUsersTrades(user, asset, lt as Address | undefined);
   return c.json(formatSuccess(trades));
 });
 
