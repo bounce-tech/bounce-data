@@ -1,9 +1,18 @@
 import { db } from "ponder:api";
-import { eq } from "drizzle-orm";
+import { eq, and } from "drizzle-orm";
 import { Address } from "viem";
 import schema from "ponder:schema";
 
-const getUsersTrades = async (user: Address) => {
+const getUsersTrades = async (user: Address, asset?: string) => {
+  let where = null;
+  if (asset) {
+    where = and(
+      eq(schema.trade.recipient, user as Address),
+      eq(schema.leveragedToken.assets, asset)
+    );
+  } else {
+    where = eq(schema.trade.recipient, user as Address);
+  }
   const tradesData = await db
     .select({
       timestamp: schema.trade.timestamp,
@@ -13,7 +22,11 @@ const getUsersTrades = async (user: Address) => {
       leveragedToken: schema.trade.leveragedToken,
     })
     .from(schema.trade)
-    .where(eq(schema.trade.recipient, user as Address));
+    .leftJoin(
+      schema.leveragedToken,
+      eq(schema.trade.leveragedToken, schema.leveragedToken.address)
+    )
+    .where(where);
   return tradesData;
 };
 

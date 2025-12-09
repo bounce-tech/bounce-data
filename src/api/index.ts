@@ -57,7 +57,8 @@ app.get("/users-trades", async (c) => {
   const user = c.req.query("user");
   if (!user) return c.json(formatError("Missing user parameter"), 400);
   if (!isAddress(user)) return c.json(formatError("Invalid user address"), 400);
-  const trades = await getUsersTrades(user);
+  const asset = c.req.query("asset");
+  const trades = await getUsersTrades(user, asset);
   return c.json(formatSuccess(trades));
 });
 
