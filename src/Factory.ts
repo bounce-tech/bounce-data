@@ -23,6 +23,9 @@ ponder.on("Factory:CreateLeveragedToken", async ({ event, context }) => {
     functionName: "decimals",
   });
 
+  const asset = name.split(" ")[0];
+  if (!asset) throw new Error("Asset not found");
+
   await context.db.insert(schema.leveragedToken).values({
     address: token,
     creator: creator,
@@ -32,5 +35,6 @@ ponder.on("Factory:CreateLeveragedToken", async ({ event, context }) => {
     symbol: symbol,
     name: name,
     decimals: decimals,
+    assets: asset,
   });
 });
