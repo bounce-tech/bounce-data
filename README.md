@@ -309,7 +309,7 @@ GET http://localhost:42069/users-trades?user=0x123456789012345678901234567890123
 **Example Request with Asset Filter:**
 
 ```
-GET http://localhost:42069/users-trades?user=0x1234567890123456789012345678901234567890&asset=USDT
+GET http://localhost:42069/users-trades?user=0x1234567890123456789012345678901234567890&asset=USDC
 ```
 
 **Example Request with Leveraged Token Address Filter:**
@@ -321,7 +321,7 @@ GET http://localhost:42069/users-trades?user=0x123456789012345678901234567890123
 **Example Request with Both Filters:**
 
 ```
-GET http://localhost:42069/users-trades?user=0x1234567890123456789012345678901234567890&asset=USDT&leveragedTokenAddress=0x1eefbacfea06d786ce012c6fc861bec6c7a828c1
+GET http://localhost:42069/users-trades?user=0x1234567890123456789012345678901234567890&asset=USDC&leveragedTokenAddress=0x1eefbacfea06d786ce012c6fc861bec6c7a828c1
 ```
 
 **Example Success Response:**
@@ -340,7 +340,7 @@ GET http://localhost:42069/users-trades?user=0x123456789012345678901234567890123
       "leveragedToken": "0x1eefbacfea06d786ce012c6fc861bec6c7a828c1",
       "targetLeverage": "1000000000000000000",
       "isLong": true,
-      "asset": "USDT"
+      "asset": "USDC"
     },
     {
       "id": "0xghi789...",
@@ -352,7 +352,7 @@ GET http://localhost:42069/users-trades?user=0x123456789012345678901234567890123
       "leveragedToken": "0x1eefbacfea06d786ce012c6fc861bec6c7a828c1",
       "targetLeverage": "1000000000000000000",
       "isLong": true,
-      "asset": "USDT"
+      "asset": "USDC"
     }
   ],
   "error": null
