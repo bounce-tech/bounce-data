@@ -3,6 +3,12 @@ import { publicClients } from "ponder:api";
 import { LT_HELPER_ADDRESS } from "../../../ponder.config";
 import { LeveragedTokenHelperAbi } from "../../../abis/LeveragedTokenHelperAbi";
 
+export interface AgentData {
+  slot: number;
+  agent: Address;
+  createdAt: bigint;
+}
+
 export interface LeveragedTokenData {
   leveragedToken: Address;
   marketId: number;
@@ -14,7 +20,7 @@ export interface LeveragedTokenData {
   totalAssets: bigint;
   userCredit: bigint;
   credit: bigint;
-  agents: Address[];
+  agentData: AgentData[];
   balanceOf: bigint;
   mintPaused: boolean;
 }
