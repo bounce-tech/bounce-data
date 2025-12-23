@@ -9,6 +9,7 @@ This project indexes the **Bounce Tech leveraged token protocol**, a decentraliz
 - **Leveraged Tokens**: Token metadata including address, creator, market ID, leverage settings, and ERC-20 properties (symbol, name, decimals)
 - **Trades**: All mint and redeem operations for leveraged tokens
 - **Transfers**: ERC-20 token transfers for leveraged tokens
+- **Fees**: Fees paid from leveraged tokens (currently sent to treasury, with support for multiple destinations in the future)
 - **Referrals**: User referral registrations and relationships
 - **Rebates**: Rebate claims from the referral system
 
@@ -40,7 +41,11 @@ The dev server will:
 - Start indexing from the configured start block
 - Serve the GraphQL API at `http://localhost:42069/graphql`
 - Serve SQL over HTTP at `http://localhost:42069/sql`
-- Serve custom API endpoints (including `/stats`, `/traded-lts`, `/users-trades`, and `/user-pnl`) at `http://localhost:42069`
+- Serve custom REST API endpoints at `http://localhost:42069`:
+  - `/stats` - Protocol statistics
+  - `/traded-lts` - Leveraged tokens traded by a user
+  - `/users-trades` - All trades for a user
+  - `/user-pnl` - Profit and loss for a user
 
 ## Schema
 
@@ -102,12 +107,26 @@ Stores rebate claims from the referral system.
 - `to`: Address that received the rebate
 - `rebate`: Amount of rebate claimed
 
+### `fee`
+
+Stores fees paid from leveraged tokens.
+
+- `id` (primary key): Unique fee identifier
+- `leveragedToken`: Address of the leveraged token (references `leveragedToken.address`)
+- `timestamp`: Block timestamp
+- `amount`: Amount of fee paid
+- `destination`: Destination of the fee (e.g., "treasury")
+
+**Note:** Currently, all fees are sent to the treasury. The system is designed to support multiple fee destinations in the future.
+
 ### Relations
 
 - Each `leveragedToken` can have many `trade` records
 - Each `trade` belongs to one `leveragedToken`
 - Each `leveragedToken` can have many `transfer` records
 - Each `transfer` belongs to one `leveragedToken`
+- Each `leveragedToken` can have many `fee` records
+- Each `fee` belongs to one `leveragedToken`
 
 ## Indexing
 
@@ -123,6 +142,7 @@ The project indexes events from the Bounce Tech protocol:
    - `Redeem`: Records sell trades
    - `ExecuteRedeem`: Records executed redemption trades
    - `Transfer`: Records ERC-20 token transfers
+   - `SendFeesToTreasury`: Records fees paid from leveraged tokens
 
 3. **Bounce Tech Referrals Contract** (`0x82A4063f4d05bb7BF18DF314DC5B63b655E86cBD`)
    - `JoinWithReferral`: Records when users join with a referral code
@@ -164,11 +184,22 @@ Query tables directly using SQL over HTTP at `http://localhost:42069/sql`.
 
 ### API
 
-All API endpoints follow a consistent response structure.
+The API provides custom REST endpoints for querying leveraged token data. All endpoints are served at `http://localhost:42069` and use GET requests.
+
+#### Endpoints Summary
+
+| Endpoint        | Method   | Description                            | Required Parameters |
+| --------------- | -------- | -------------------------------------- | ------------------- |
+| `/stats`        | GET      | Get aggregated protocol statistics     | None                |
+| `/traded-lts`   | GET      | Get leveraged tokens a user has traded | `user`              |
+| `/users-trades` | GET      | Get all trades for a user              | `user`              |
+| `/user-pnl`     | GET      | Get profit and loss for a user         | `user`              |
+| `/graphql`      | GET/POST | GraphQL API endpoint                   | N/A                 |
+| `/sql/*`        | GET/POST | SQL over HTTP endpoint                 | N/A                 |
 
 #### Response Format
 
-All API endpoints return responses in the following format:
+All API endpoints follow a consistent response structure.
 
 **Success Response:**
 
@@ -192,6 +223,13 @@ All API endpoints return responses in the following format:
 }
 ```
 
+**Important Notes:**
+
+- All endpoints return JSON responses
+- BigInt values are automatically serialized to strings in responses (e.g., `"1234567890123456789"` instead of a number)
+- Error responses return HTTP status code `400 Bad Request` for invalid or missing parameters
+- CORS is enabled for specific origins: `http://localhost:5173`, `https://bounce.tech`, and Firebase web apps (`*.web.app`)
+
 #### Stats Endpoint
 
 Get aggregated protocol statistics at `http://localhost:42069/stats`.
@@ -207,6 +245,7 @@ Get aggregated protocol statistics at `http://localhost:42069/stats`.
 - `totalValueLocked`: Current TVL across all leveraged tokens
 - `openInterest`: Current open interest across all leveraged tokens
 - `totalTrades`: Total number of trades (mints and redeems)
+- `treasuryFees`: Total fees sent to treasury (in base asset units)
 
 **Example Response:**
 
@@ -222,7 +261,8 @@ Get aggregated protocol statistics at `http://localhost:42069/stats`.
     "uniqueUsers": 150,
     "totalValueLocked": 500000.0,
     "openInterest": 5000000.0,
-    "totalTrades": 1234
+    "totalTrades": 1234,
+    "treasuryFees": 12345.67
   },
   "error": null
 }

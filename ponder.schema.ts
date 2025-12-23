@@ -48,6 +48,14 @@ export const rebate = onchainTable("rebate", (t) => ({
   rebate: t.bigint().notNull(),
 }));
 
+export const fee = onchainTable("fee", (t) => ({
+  id: t.text().primaryKey(),
+  leveragedToken: t.hex().notNull(),
+  timestamp: t.bigint().notNull(),
+  amount: t.bigint().notNull(),
+  destination: t.text().notNull(),
+}));
+
 export const leveragedTokensRelations = relations(
   leveragedToken,
   ({ many }) => ({
@@ -66,6 +74,13 @@ export const tradesRelations = relations(trade, ({ one }) => ({
 export const transfersRelations = relations(transfer, ({ one }) => ({
   leveragedToken: one(leveragedToken, {
     fields: [transfer.leveragedToken],
+    references: [leveragedToken.address],
+  }),
+}));
+
+export const feesRelations = relations(fee, ({ one }) => ({
+  leveragedToken: one(leveragedToken, {
+    fields: [fee.leveragedToken],
     references: [leveragedToken.address],
   }),
 }));

@@ -29,8 +29,13 @@ const getStats = async () => {
     .select({
       supportedAssets: sql<number>`count(distinct ${schema.leveragedToken.marketId})`,
       leveragedTokens: sql<number>`count(*)`,
+      treasuryFees: sql<string>`sum(${schema.fee.amount}) / ${BASE_ASSET_DECIMALS}`,
     })
-    .from(schema.leveragedToken);
+    .from(schema.leveragedToken)
+    .leftJoin(
+      schema.fee,
+      sql`${schema.fee.leveragedToken} = ${schema.leveragedToken.address} and ${schema.fee.destination} = 'treasury'`
+    );
 
   // Querying leveraged token contracts
   const leveragedTokenData = await getLeveragedTokenData();
@@ -62,6 +67,7 @@ const getStats = async () => {
   const leveragedTokens = leveragedTokenResult[0]?.leveragedTokens || 0;
   const uniqueUsers = tradeResult[0]?.uniqueUsers || 0;
   const totalTrades = tradeResult[0]?.totalTrades || 0;
+  const treasuryFees = Number(leveragedTokenResult[0]?.treasuryFees || 0);
 
   // Returning results
   return {
@@ -74,6 +80,7 @@ const getStats = async () => {
     totalValueLocked: tvl,
     openInterest: openInterest,
     totalTrades: totalTrades,
+    treasuryFees: treasuryFees,
   };
 };
 
