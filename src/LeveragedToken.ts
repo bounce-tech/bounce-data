@@ -67,3 +67,16 @@ ponder.on("LeveragedToken:Transfer", async ({ event, context }) => {
     txHash: event.transaction?.hash ?? "",
   });
 });
+
+// event SendFeesToTreasury(uint256 amount);
+ponder.on("LeveragedToken:SendFeesToTreasury", async ({ event, context }) => {
+  const { amount } = event.args;
+
+  await context.db.insert(schema.fee).values({
+    id: crypto.randomUUID(),
+    leveragedToken: event.log.address,
+    timestamp: event.block.timestamp,
+    amount: amount,
+    destination: "treasury",
+  });
+});

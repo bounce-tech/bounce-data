@@ -1,163 +1,92 @@
 export const LeveragedTokenAbi = [
-  {
-    type: "constructor",
-    inputs: [],
-    stateMutability: "nonpayable",
-  },
+  { type: "constructor", inputs: [], stateMutability: "nonpayable" },
   {
     type: "function",
     name: "agentCreatedAt",
-    inputs: [
-      {
-        name: "agent_",
-        type: "address",
-        internalType: "address",
-      },
-    ],
-    outputs: [
-      {
-        name: "",
-        type: "uint256",
-        internalType: "uint256",
-      },
-    ],
+    inputs: [{ name: "agent_", type: "address", internalType: "address" }],
+    outputs: [{ name: "", type: "uint256", internalType: "uint256" }],
     stateMutability: "view",
   },
   {
     type: "function",
     name: "agents",
     inputs: [],
-    outputs: [
-      {
-        name: "",
-        type: "address[3]",
-        internalType: "address[3]",
-      },
-    ],
+    outputs: [{ name: "", type: "address[3]", internalType: "address[3]" }],
     stateMutability: "view",
   },
   {
     type: "function",
     name: "allowance",
     inputs: [
-      {
-        name: "owner",
-        type: "address",
-        internalType: "address",
-      },
-      {
-        name: "spender",
-        type: "address",
-        internalType: "address",
-      },
+      { name: "owner", type: "address", internalType: "address" },
+      { name: "spender", type: "address", internalType: "address" },
     ],
-    outputs: [
-      {
-        name: "",
-        type: "uint256",
-        internalType: "uint256",
-      },
-    ],
+    outputs: [{ name: "", type: "uint256", internalType: "uint256" }],
     stateMutability: "view",
   },
   {
     type: "function",
     name: "approve",
     inputs: [
-      {
-        name: "spender",
-        type: "address",
-        internalType: "address",
-      },
-      {
-        name: "value",
-        type: "uint256",
-        internalType: "uint256",
-      },
+      { name: "spender", type: "address", internalType: "address" },
+      { name: "value", type: "uint256", internalType: "uint256" },
     ],
-    outputs: [
-      {
-        name: "",
-        type: "bool",
-        internalType: "bool",
-      },
-    ],
+    outputs: [{ name: "", type: "bool", internalType: "bool" }],
     stateMutability: "nonpayable",
   },
   {
     type: "function",
     name: "balanceOf",
-    inputs: [
-      {
-        name: "account",
-        type: "address",
-        internalType: "address",
-      },
-    ],
-    outputs: [
-      {
-        name: "",
-        type: "uint256",
-        internalType: "uint256",
-      },
-    ],
+    inputs: [{ name: "account", type: "address", internalType: "address" }],
+    outputs: [{ name: "", type: "uint256", internalType: "uint256" }],
     stateMutability: "view",
   },
   {
     type: "function",
     name: "baseAssetBalance",
     inputs: [],
-    outputs: [
-      {
-        name: "",
-        type: "uint256",
-        internalType: "uint256",
-      },
-    ],
+    outputs: [{ name: "", type: "uint256", internalType: "uint256" }],
     stateMutability: "view",
   },
   {
     type: "function",
     name: "baseToLtAmount",
-    inputs: [
-      {
-        name: "baseAmount_",
-        type: "uint256",
-        internalType: "uint256",
-      },
-    ],
-    outputs: [
-      {
-        name: "",
-        type: "uint256",
-        internalType: "uint256",
-      },
-    ],
+    inputs: [{ name: "baseAmount_", type: "uint256", internalType: "uint256" }],
+    outputs: [{ name: "", type: "uint256", internalType: "uint256" }],
     stateMutability: "view",
   },
   {
     type: "function",
-    name: "bridgeIn",
-    inputs: [
-      {
-        name: "amount_",
-        type: "uint256",
-        internalType: "uint256",
-      },
-    ],
+    name: "bridgeFromPerp",
+    inputs: [{ name: "amount_", type: "uint256", internalType: "uint256" }],
     outputs: [],
     stateMutability: "nonpayable",
   },
   {
     type: "function",
-    name: "bridgeOut",
-    inputs: [
-      {
-        name: "amount_",
-        type: "uint256",
-        internalType: "uint256",
-      },
-    ],
+    name: "bridgeFromSpot",
+    inputs: [{ name: "amount_", type: "uint256", internalType: "uint256" }],
+    outputs: [],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    name: "bridgeToPerp",
+    inputs: [{ name: "amount_", type: "uint256", internalType: "uint256" }],
+    outputs: [],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    name: "bridgeToSpot",
+    inputs: [{ name: "amount_", type: "uint256", internalType: "uint256" }],
+    outputs: [],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    name: "cancelRedeem",
+    inputs: [],
     outputs: [],
     stateMutability: "nonpayable",
   },
@@ -171,13 +100,7 @@ export const LeveragedTokenAbi = [
   {
     type: "function",
     name: "checkpoint",
-    inputs: [
-      {
-        name: "to_",
-        type: "uint256",
-        internalType: "uint256",
-      },
-    ],
+    inputs: [{ name: "to_", type: "uint256", internalType: "uint256" }],
     outputs: [],
     stateMutability: "nonpayable",
   },
@@ -185,71 +108,45 @@ export const LeveragedTokenAbi = [
     type: "function",
     name: "credit",
     inputs: [],
-    outputs: [
-      {
-        name: "",
-        type: "uint256",
-        internalType: "uint256",
-      },
-    ],
+    outputs: [{ name: "", type: "uint256", internalType: "uint256" }],
     stateMutability: "view",
   },
   {
     type: "function",
     name: "decimals",
     inputs: [],
-    outputs: [
-      {
-        name: "",
-        type: "uint8",
-        internalType: "uint8",
-      },
-    ],
+    outputs: [{ name: "", type: "uint8", internalType: "uint8" }],
     stateMutability: "view",
   },
   {
     type: "function",
     name: "exchangeRate",
     inputs: [],
-    outputs: [
-      {
-        name: "",
-        type: "uint256",
-        internalType: "uint256",
-      },
-    ],
+    outputs: [{ name: "", type: "uint256", internalType: "uint256" }],
     stateMutability: "view",
   },
   {
     type: "function",
     name: "executeRedemptions",
-    inputs: [
+    inputs: [{ name: "users_", type: "address[]", internalType: "address[]" }],
+    outputs: [
       {
-        name: "users_",
-        type: "address[]",
-        internalType: "address[]",
+        name: "executeRedemptionData_",
+        type: "tuple[]",
+        internalType: "struct ILeveragedToken.ExecuteRedemptionData[]",
+        components: [
+          { name: "user", type: "address", internalType: "address" },
+          { name: "wasExecuted", type: "bool", internalType: "bool" },
+        ],
       },
     ],
-    outputs: [],
     stateMutability: "nonpayable",
   },
   {
     type: "function",
     name: "getAgentSlot",
-    inputs: [
-      {
-        name: "agent_",
-        type: "address",
-        internalType: "address",
-      },
-    ],
-    outputs: [
-      {
-        name: "",
-        type: "uint8",
-        internalType: "uint8",
-      },
-    ],
+    inputs: [{ name: "agent_", type: "address", internalType: "address" }],
+    outputs: [{ name: "", type: "uint8", internalType: "uint8" }],
     stateMutability: "view",
   },
   {
@@ -261,36 +158,16 @@ export const LeveragedTokenAbi = [
         type: "address",
         internalType: "address",
       },
-      {
-        name: "marketId_",
-        type: "uint32",
-        internalType: "uint32",
-      },
-      {
-        name: "targetAsset_",
-        type: "string",
-        internalType: "string",
-      },
+      { name: "marketId_", type: "uint32", internalType: "uint32" },
+      { name: "targetAsset_", type: "string", internalType: "string" },
       {
         name: "targetLeverage_",
         type: "uint256",
         internalType: "uint256",
       },
-      {
-        name: "isLong_",
-        type: "bool",
-        internalType: "bool",
-      },
-      {
-        name: "name_",
-        type: "string",
-        internalType: "string",
-      },
-      {
-        name: "symbol_",
-        type: "string",
-        internalType: "string",
-      },
+      { name: "isLong_", type: "bool", internalType: "bool" },
+      { name: "name_", type: "string", internalType: "string" },
+      { name: "symbol_", type: "string", internalType: "string" },
     ],
     outputs: [],
     stateMutability: "nonpayable",
@@ -298,158 +175,74 @@ export const LeveragedTokenAbi = [
   {
     type: "function",
     name: "isAgent",
-    inputs: [
-      {
-        name: "agent_",
-        type: "address",
-        internalType: "address",
-      },
-    ],
-    outputs: [
-      {
-        name: "",
-        type: "bool",
-        internalType: "bool",
-      },
-    ],
+    inputs: [{ name: "agent_", type: "address", internalType: "address" }],
+    outputs: [{ name: "", type: "bool", internalType: "bool" }],
     stateMutability: "view",
   },
   {
     type: "function",
     name: "isLong",
     inputs: [],
-    outputs: [
-      {
-        name: "",
-        type: "bool",
-        internalType: "bool",
-      },
-    ],
+    outputs: [{ name: "", type: "bool", internalType: "bool" }],
     stateMutability: "view",
   },
   {
     type: "function",
     name: "lastCheckpoint",
     inputs: [],
-    outputs: [
-      {
-        name: "",
-        type: "uint256",
-        internalType: "uint256",
-      },
-    ],
+    outputs: [{ name: "", type: "uint256", internalType: "uint256" }],
     stateMutability: "view",
   },
   {
     type: "function",
     name: "ltToBaseAmount",
-    inputs: [
-      {
-        name: "ltAmount_",
-        type: "uint256",
-        internalType: "uint256",
-      },
-    ],
-    outputs: [
-      {
-        name: "",
-        type: "uint256",
-        internalType: "uint256",
-      },
-    ],
+    inputs: [{ name: "ltAmount_", type: "uint256", internalType: "uint256" }],
+    outputs: [{ name: "", type: "uint256", internalType: "uint256" }],
     stateMutability: "view",
   },
   {
     type: "function",
     name: "marketId",
     inputs: [],
-    outputs: [
-      {
-        name: "",
-        type: "uint32",
-        internalType: "uint32",
-      },
-    ],
+    outputs: [{ name: "", type: "uint32", internalType: "uint32" }],
     stateMutability: "view",
   },
   {
     type: "function",
     name: "mint",
     inputs: [
-      {
-        name: "to_",
-        type: "address",
-        internalType: "address",
-      },
-      {
-        name: "baseAmount_",
-        type: "uint256",
-        internalType: "uint256",
-      },
-      {
-        name: "minOut_",
-        type: "uint256",
-        internalType: "uint256",
-      },
+      { name: "to_", type: "address", internalType: "address" },
+      { name: "baseAmount_", type: "uint256", internalType: "uint256" },
+      { name: "minOut_", type: "uint256", internalType: "uint256" },
     ],
-    outputs: [
-      {
-        name: "",
-        type: "uint256",
-        internalType: "uint256",
-      },
-    ],
+    outputs: [{ name: "", type: "uint256", internalType: "uint256" }],
     stateMutability: "nonpayable",
   },
   {
     type: "function",
     name: "mintPaused",
     inputs: [],
-    outputs: [
-      {
-        name: "",
-        type: "bool",
-        internalType: "bool",
-      },
-    ],
+    outputs: [{ name: "", type: "bool", internalType: "bool" }],
     stateMutability: "view",
   },
   {
     type: "function",
     name: "name",
     inputs: [],
-    outputs: [
-      {
-        name: "",
-        type: "string",
-        internalType: "string",
-      },
-    ],
+    outputs: [{ name: "", type: "string", internalType: "string" }],
     stateMutability: "view",
   },
   {
     type: "function",
     name: "pendingRedemptions",
     inputs: [],
-    outputs: [
-      {
-        name: "",
-        type: "address[]",
-        internalType: "address[]",
-      },
-    ],
+    outputs: [{ name: "", type: "address[]", internalType: "address[]" }],
     stateMutability: "view",
   },
   {
     type: "function",
     name: "prepareRedeem",
-    inputs: [
-      {
-        name: "ltAmount_",
-        type: "uint256",
-        internalType: "uint256",
-      },
-    ],
+    inputs: [{ name: "ltAmount_", type: "uint256", internalType: "uint256" }],
     outputs: [],
     stateMutability: "nonpayable",
   },
@@ -457,45 +250,23 @@ export const LeveragedTokenAbi = [
     type: "function",
     name: "redeem",
     inputs: [
-      {
-        name: "to_",
-        type: "address",
-        internalType: "address",
-      },
-      {
-        name: "ltAmount_",
-        type: "uint256",
-        internalType: "uint256",
-      },
+      { name: "to_", type: "address", internalType: "address" },
+      { name: "ltAmount_", type: "uint256", internalType: "uint256" },
       {
         name: "minBaseAmount_",
         type: "uint256",
         internalType: "uint256",
       },
     ],
-    outputs: [
-      {
-        name: "",
-        type: "uint256",
-        internalType: "uint256",
-      },
-    ],
+    outputs: [{ name: "", type: "uint256", internalType: "uint256" }],
     stateMutability: "nonpayable",
   },
   {
     type: "function",
     name: "setAgent",
     inputs: [
-      {
-        name: "slot_",
-        type: "uint8",
-        internalType: "uint8",
-      },
-      {
-        name: "agent_",
-        type: "address",
-        internalType: "address",
-      },
+      { name: "slot_", type: "uint8", internalType: "uint8" },
+      { name: "agent_", type: "address", internalType: "address" },
     ],
     outputs: [],
     stateMutability: "nonpayable",
@@ -503,13 +274,7 @@ export const LeveragedTokenAbi = [
   {
     type: "function",
     name: "setMintPaused",
-    inputs: [
-      {
-        name: "mintPaused_",
-        type: "bool",
-        internalType: "bool",
-      },
-    ],
+    inputs: [{ name: "mintPaused_", type: "bool", internalType: "bool" }],
     outputs: [],
     stateMutability: "nonpayable",
   },
@@ -517,134 +282,64 @@ export const LeveragedTokenAbi = [
     type: "function",
     name: "symbol",
     inputs: [],
-    outputs: [
-      {
-        name: "",
-        type: "string",
-        internalType: "string",
-      },
-    ],
+    outputs: [{ name: "", type: "string", internalType: "string" }],
     stateMutability: "view",
   },
   {
     type: "function",
     name: "targetAsset",
     inputs: [],
-    outputs: [
-      {
-        name: "",
-        type: "string",
-        internalType: "string",
-      },
-    ],
+    outputs: [{ name: "", type: "string", internalType: "string" }],
     stateMutability: "view",
   },
   {
     type: "function",
     name: "targetLeverage",
     inputs: [],
-    outputs: [
-      {
-        name: "",
-        type: "uint256",
-        internalType: "uint256",
-      },
-    ],
+    outputs: [{ name: "", type: "uint256", internalType: "uint256" }],
     stateMutability: "view",
   },
   {
     type: "function",
     name: "totalAssets",
     inputs: [],
-    outputs: [
-      {
-        name: "",
-        type: "uint256",
-        internalType: "uint256",
-      },
-    ],
+    outputs: [{ name: "", type: "uint256", internalType: "uint256" }],
     stateMutability: "view",
   },
   {
     type: "function",
     name: "totalSupply",
     inputs: [],
-    outputs: [
-      {
-        name: "",
-        type: "uint256",
-        internalType: "uint256",
-      },
-    ],
+    outputs: [{ name: "", type: "uint256", internalType: "uint256" }],
     stateMutability: "view",
   },
   {
     type: "function",
     name: "transfer",
     inputs: [
-      {
-        name: "to",
-        type: "address",
-        internalType: "address",
-      },
-      {
-        name: "value",
-        type: "uint256",
-        internalType: "uint256",
-      },
+      { name: "to", type: "address", internalType: "address" },
+      { name: "value", type: "uint256", internalType: "uint256" },
     ],
-    outputs: [
-      {
-        name: "",
-        type: "bool",
-        internalType: "bool",
-      },
-    ],
+    outputs: [{ name: "", type: "bool", internalType: "bool" }],
     stateMutability: "nonpayable",
   },
   {
     type: "function",
     name: "transferFrom",
     inputs: [
-      {
-        name: "from",
-        type: "address",
-        internalType: "address",
-      },
-      {
-        name: "to",
-        type: "address",
-        internalType: "address",
-      },
-      {
-        name: "value",
-        type: "uint256",
-        internalType: "uint256",
-      },
+      { name: "from", type: "address", internalType: "address" },
+      { name: "to", type: "address", internalType: "address" },
+      { name: "value", type: "uint256", internalType: "uint256" },
     ],
-    outputs: [
-      {
-        name: "",
-        type: "bool",
-        internalType: "bool",
-      },
-    ],
+    outputs: [{ name: "", type: "bool", internalType: "bool" }],
     stateMutability: "nonpayable",
   },
   {
     type: "function",
     name: "usdClassTransfer",
     inputs: [
-      {
-        name: "amount_",
-        type: "uint64",
-        internalType: "uint64",
-      },
-      {
-        name: "toPerp_",
-        type: "bool",
-        internalType: "bool",
-      },
+      { name: "amount_", type: "uint64", internalType: "uint64" },
+      { name: "toPerp_", type: "bool", internalType: "bool" },
     ],
     outputs: [],
     stateMutability: "nonpayable",
@@ -652,21 +347,16 @@ export const LeveragedTokenAbi = [
   {
     type: "function",
     name: "userCredit",
-    inputs: [
-      {
-        name: "user_",
-        type: "address",
-        internalType: "address",
-      },
-    ],
-    outputs: [
-      {
-        name: "",
-        type: "uint256",
-        internalType: "uint256",
-      },
-    ],
+    inputs: [{ name: "user_", type: "address", internalType: "address" }],
+    outputs: [{ name: "", type: "uint256", internalType: "uint256" }],
     stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "version",
+    inputs: [],
+    outputs: [{ name: "", type: "string", internalType: "string" }],
+    stateMutability: "pure",
   },
   {
     type: "event",
@@ -695,7 +385,7 @@ export const LeveragedTokenAbi = [
   },
   {
     type: "event",
-    name: "BridgeIn",
+    name: "BridgeFromPerp",
     inputs: [
       {
         name: "sender",
@@ -714,7 +404,7 @@ export const LeveragedTokenAbi = [
   },
   {
     type: "event",
-    name: "BridgeOut",
+    name: "BridgeFromSpot",
     inputs: [
       {
         name: "sender",
@@ -724,6 +414,63 @@ export const LeveragedTokenAbi = [
       },
       {
         name: "amount",
+        type: "uint256",
+        indexed: false,
+        internalType: "uint256",
+      },
+    ],
+    anonymous: false,
+  },
+  {
+    type: "event",
+    name: "BridgeToPerp",
+    inputs: [
+      {
+        name: "sender",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
+      {
+        name: "amount",
+        type: "uint256",
+        indexed: false,
+        internalType: "uint256",
+      },
+    ],
+    anonymous: false,
+  },
+  {
+    type: "event",
+    name: "BridgeToSpot",
+    inputs: [
+      {
+        name: "sender",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
+      {
+        name: "amount",
+        type: "uint256",
+        indexed: false,
+        internalType: "uint256",
+      },
+    ],
+    anonymous: false,
+  },
+  {
+    type: "event",
+    name: "CancelRedeem",
+    inputs: [
+      {
+        name: "user",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
+      {
+        name: "credit",
         type: "uint256",
         indexed: false,
         internalType: "uint256",
@@ -865,6 +612,19 @@ export const LeveragedTokenAbi = [
   },
   {
     type: "event",
+    name: "SendFeesToTreasury",
+    inputs: [
+      {
+        name: "amount",
+        type: "uint256",
+        indexed: false,
+        internalType: "uint256",
+      },
+    ],
+    anonymous: false,
+  },
+  {
+    type: "event",
     name: "SetAgent",
     inputs: [
       {
@@ -951,205 +711,86 @@ export const LeveragedTokenAbi = [
     ],
     anonymous: false,
   },
+  { type: "error", name: "AlreadyCreated", inputs: [] },
+  { type: "error", name: "AlreadyRedeeming", inputs: [] },
+  { type: "error", name: "BelowMinTransactionSize", inputs: [] },
+  { type: "error", name: "CancelDelayNotElapsed", inputs: [] },
   {
     type: "error",
-    name: "AgentAlreadyUsed",
-    inputs: [],
-  },
-  {
-    type: "error",
-    name: "AlreadyCreated",
-    inputs: [],
-  },
-  {
-    type: "error",
-    name: "AlreadyRedeeming",
-    inputs: [],
-  },
-  {
-    type: "error",
-    name: "BelowMinTransactionSize",
+    name: "CoreWriterLib__CannotSelfTransfer",
     inputs: [],
   },
   {
     type: "error",
     name: "CoreWriterLib__CoreAmountTooLarge",
-    inputs: [
-      {
-        name: "amount",
-        type: "uint256",
-        internalType: "uint256",
-      },
-    ],
+    inputs: [{ name: "amount", type: "uint256", internalType: "uint256" }],
   },
   {
     type: "error",
     name: "CoreWriterLib__EvmAmountTooSmall",
-    inputs: [
-      {
-        name: "amount",
-        type: "uint256",
-        internalType: "uint256",
-      },
-    ],
+    inputs: [{ name: "amount", type: "uint256", internalType: "uint256" }],
   },
   {
     type: "error",
-    name: "DivisionByZero",
+    name: "CoreWriterLib__HypeTransferFailed",
     inputs: [],
   },
+  { type: "error", name: "DivisionByZero", inputs: [] },
   {
     type: "error",
     name: "ERC20InsufficientAllowance",
     inputs: [
-      {
-        name: "spender",
-        type: "address",
-        internalType: "address",
-      },
-      {
-        name: "allowance",
-        type: "uint256",
-        internalType: "uint256",
-      },
-      {
-        name: "needed",
-        type: "uint256",
-        internalType: "uint256",
-      },
+      { name: "spender", type: "address", internalType: "address" },
+      { name: "allowance", type: "uint256", internalType: "uint256" },
+      { name: "needed", type: "uint256", internalType: "uint256" },
     ],
   },
   {
     type: "error",
     name: "ERC20InsufficientBalance",
     inputs: [
-      {
-        name: "sender",
-        type: "address",
-        internalType: "address",
-      },
-      {
-        name: "balance",
-        type: "uint256",
-        internalType: "uint256",
-      },
-      {
-        name: "needed",
-        type: "uint256",
-        internalType: "uint256",
-      },
+      { name: "sender", type: "address", internalType: "address" },
+      { name: "balance", type: "uint256", internalType: "uint256" },
+      { name: "needed", type: "uint256", internalType: "uint256" },
     ],
   },
   {
     type: "error",
     name: "ERC20InvalidApprover",
-    inputs: [
-      {
-        name: "approver",
-        type: "address",
-        internalType: "address",
-      },
-    ],
+    inputs: [{ name: "approver", type: "address", internalType: "address" }],
   },
   {
     type: "error",
     name: "ERC20InvalidReceiver",
-    inputs: [
-      {
-        name: "receiver",
-        type: "address",
-        internalType: "address",
-      },
-    ],
+    inputs: [{ name: "receiver", type: "address", internalType: "address" }],
   },
   {
     type: "error",
     name: "ERC20InvalidSender",
-    inputs: [
-      {
-        name: "sender",
-        type: "address",
-        internalType: "address",
-      },
-    ],
+    inputs: [{ name: "sender", type: "address", internalType: "address" }],
   },
   {
     type: "error",
     name: "ERC20InvalidSpender",
-    inputs: [
-      {
-        name: "spender",
-        type: "address",
-        internalType: "address",
-      },
-    ],
+    inputs: [{ name: "spender", type: "address", internalType: "address" }],
   },
   {
     type: "error",
     name: "HLConversions__InvalidToken",
-    inputs: [
-      {
-        name: "token",
-        type: "uint64",
-        internalType: "uint64",
-      },
-    ],
+    inputs: [{ name: "token", type: "uint64", internalType: "uint64" }],
   },
-  {
-    type: "error",
-    name: "InsufficientBalance",
-    inputs: [],
-  },
-  {
-    type: "error",
-    name: "InsufficientCredit",
-    inputs: [],
-  },
-  {
-    type: "error",
-    name: "InvalidAddress",
-    inputs: [],
-  },
-  {
-    type: "error",
-    name: "InvalidAgentSlot",
-    inputs: [],
-  },
-  {
-    type: "error",
-    name: "InvalidAmount",
-    inputs: [],
-  },
-  {
-    type: "error",
-    name: "InvalidInitialization",
-    inputs: [],
-  },
-  {
-    type: "error",
-    name: "LastAgent",
-    inputs: [],
-  },
-  {
-    type: "error",
-    name: "MintPaused",
-    inputs: [],
-  },
-  {
-    type: "error",
-    name: "NotAgent",
-    inputs: [],
-  },
-  {
-    type: "error",
-    name: "NotInitializing",
-    inputs: [],
-  },
-  {
-    type: "error",
-    name: "NotOwner",
-    inputs: [],
-  },
+  { type: "error", name: "InsufficientBalance", inputs: [] },
+  { type: "error", name: "InvalidAddress", inputs: [] },
+  { type: "error", name: "InvalidAgentSlot", inputs: [] },
+  { type: "error", name: "InvalidAmount", inputs: [] },
+  { type: "error", name: "InvalidInitialization", inputs: [] },
+  { type: "error", name: "LeveragedTokenNotActivated", inputs: [] },
+  { type: "error", name: "MintPaused", inputs: [] },
+  { type: "error", name: "NotAgent", inputs: [] },
+  { type: "error", name: "NotExecutor", inputs: [] },
+  { type: "error", name: "NotInitializing", inputs: [] },
+  { type: "error", name: "NotOwner", inputs: [] },
+  { type: "error", name: "NotRedeeming", inputs: [] },
   {
     type: "error",
     name: "PrecompileLib__TokenInfoPrecompileFailed",
@@ -1159,37 +800,15 @@ export const LeveragedTokenAbi = [
     type: "error",
     name: "SafeCastOverflowedUintDowncast",
     inputs: [
-      {
-        name: "bits",
-        type: "uint8",
-        internalType: "uint8",
-      },
-      {
-        name: "value",
-        type: "uint256",
-        internalType: "uint256",
-      },
+      { name: "bits", type: "uint8", internalType: "uint8" },
+      { name: "value", type: "uint256", internalType: "uint256" },
     ],
   },
   {
     type: "error",
     name: "SafeERC20FailedOperation",
-    inputs: [
-      {
-        name: "token",
-        type: "address",
-        internalType: "address",
-      },
-    ],
+    inputs: [{ name: "token", type: "address", internalType: "address" }],
   },
-  {
-    type: "error",
-    name: "SameAsCurrent",
-    inputs: [],
-  },
-  {
-    type: "error",
-    name: "SlippageExceeded",
-    inputs: [],
-  },
+  { type: "error", name: "SameAsCurrent", inputs: [] },
+  { type: "error", name: "SlippageExceeded", inputs: [] },
 ] as const;
