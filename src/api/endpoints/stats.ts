@@ -28,7 +28,7 @@ const getStats = async () => {
   const leveragedTokenResult = await db
     .select({
       supportedAssets: sql<number>`count(distinct ${schema.leveragedToken.marketId})`,
-      leveragedTokens: sql<number>`count(*)`,
+      leveragedTokens: sql<number>`count(distinct ${schema.leveragedToken.address})`,
       treasuryFees: sql<string>`sum(${schema.fee.amount}) / ${BASE_ASSET_DECIMALS}`,
     })
     .from(schema.leveragedToken)
