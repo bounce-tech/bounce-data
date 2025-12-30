@@ -13,7 +13,17 @@ export const convertDecimals = (
   fromDecimals: number,
   toDecimals: number
 ) => {
-  return value * BigInt(10 ** (toDecimals - fromDecimals));
+  const diff = toDecimals - fromDecimals;
+
+  if (diff === 0) return value;
+
+  if (diff > 0) {
+    const factor = BigInt(10) ** BigInt(diff);
+    return value * factor;
+  }
+
+  const factor = BigInt(10) ** BigInt(-diff);
+  return value / factor;
 };
 
 export const scaleNumber = (value: number, decimals: number) => {
