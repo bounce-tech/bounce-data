@@ -1,12 +1,12 @@
 import { createConfig } from "ponder";
 
-import { LeveragedTokenAbi } from "./abis/LeveragedTokenAbi";
-import { FactoryAbi } from "./abis/FactoryAbi";
-import { ReferralsAbi } from "./abis/ReferralsAbi";
-
-export const LT_HELPER_ADDRESS = "0x74dd1ecdA4fA350Ee67Ab4103C8728d8C2983802";
-export const FACTORY_ADDRESS = "0xeD8bCDe433EB7c4B69DB1235483bf0Edb726Fc1B";
-export const REFERRALS_ADDRESS = "0xfD3A6323878Fc991447CcDd4c644ab419afC6f76";
+import {
+  FACTORY_ABI,
+  LEVERAGED_TOKEN_ABI,
+  REFERRALS_ABI,
+  FACTORY_ADDRESS,
+  REFERRALS_ADDRESS,
+} from "@bouncetech/contracts";
 
 const startBlock = 21549398;
 
@@ -20,7 +20,7 @@ export default createConfig({
   contracts: {
     LeveragedToken: {
       chain: "hyperEvm",
-      abi: LeveragedTokenAbi,
+      abi: LEVERAGED_TOKEN_ABI,
       address: [
         "0x7B430c5842ce7dBa29b910c018369FA2Fa0ac2e3",
         "0xa18E0878d47b2c22B4b84832c04544C02Fd4991A",
@@ -51,13 +51,13 @@ export default createConfig({
     },
     Factory: {
       chain: "hyperEvm",
-      abi: FactoryAbi,
+      abi: FACTORY_ABI,
       address: FACTORY_ADDRESS,
       startBlock,
     },
     Referrals: {
       chain: "hyperEvm",
-      abi: ReferralsAbi,
+      abi: REFERRALS_ABI,
       address: REFERRALS_ADDRESS,
       startBlock,
     },
