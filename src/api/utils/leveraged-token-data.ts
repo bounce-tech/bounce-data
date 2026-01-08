@@ -1,9 +1,11 @@
 import { Address } from "viem";
 import { publicClients } from "ponder:api";
-import { LT_HELPER_ADDRESS } from "../../../ponder.config";
-import { LeveragedTokenHelperAbi } from "../../../abis/LeveragedTokenHelperAbi";
+import {
+  LEVERAGED_TOKEN_HELPER_ADDRESS,
+  LEVERAGED_TOKEN_HELPER_ABI,
+} from "@bouncetech/contracts";
 
-export interface AgentData {
+interface AgentData {
   slot: number;
   agent: Address;
   createdAt: bigint;
@@ -32,18 +34,18 @@ const getLeveragedTokenData = async (
   let leveragedTokenData: LeveragedTokenData[] = [];
   if (user) {
     leveragedTokenData = (await publicClients["hyperEvm"].readContract({
-      abi: LeveragedTokenHelperAbi,
-      address: LT_HELPER_ADDRESS,
+      abi: LEVERAGED_TOKEN_HELPER_ABI,
+      address: LEVERAGED_TOKEN_HELPER_ADDRESS,
       functionName: "getLeveragedTokens",
       args: [user, false],
-    })) as LeveragedTokenData[];
+    })) as unknown as LeveragedTokenData[];
   } else {
     leveragedTokenData = (await publicClients["hyperEvm"].readContract({
-      abi: LeveragedTokenHelperAbi,
-      address: LT_HELPER_ADDRESS,
+      abi: LEVERAGED_TOKEN_HELPER_ABI,
+      address: LEVERAGED_TOKEN_HELPER_ADDRESS,
       functionName: "getLeveragedTokens",
       args: [],
-    })) as LeveragedTokenData[];
+    })) as unknown as LeveragedTokenData[];
   }
   return leveragedTokenData;
 };

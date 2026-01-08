@@ -2,13 +2,13 @@ import { ponder } from "ponder:registry";
 import schema from "ponder:schema";
 import crypto from "crypto";
 
-// event JoinWithReferral(address indexed referree, address indexed referrer, string referralCode);
+// event JoinWithReferral(address indexed referee, address indexed referrer, string referralCode);
 ponder.on("Referrals:JoinWithReferral", async ({ event, context }) => {
-  const { referree, referrer, referralCode } = event.args;
+  const { referee, referrer, referralCode } = event.args;
 
   await context.db.insert(schema.referral).values({
     id: crypto.randomUUID(),
-    user: referree,
+    user: referee,
     code: referralCode,
     referrer: referrer,
   });
