@@ -25,6 +25,7 @@ export interface LeveragedTokenData {
   agentData: AgentData[];
   balanceOf: bigint;
   mintPaused: boolean;
+  isStandbyMode: boolean;
 }
 
 const getLeveragedTokenData = async (

@@ -14,7 +14,7 @@
     "test:watch": "vitest"
   },
   "dependencies": {
-    "@bouncetech/contracts": "^1.1.0",
+    "@bouncetech/contracts": "^1.2.0",
     "crypto": "^1.0.1",
     "hono": "^4.5.0",
     "ponder": "^0.15.7",
