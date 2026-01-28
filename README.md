@@ -45,6 +45,7 @@ The dev server will:
   - `/traded-lts` - Leveraged tokens traded by a user
   - `/users-trades` - All trades for a user
   - `/user-pnl` - Profit and loss for a user
+  - `/latest-trades` - Latest 100 trades across all users
 
 ## Schema
 
@@ -197,6 +198,7 @@ The API provides custom REST endpoints for querying leveraged token data. All en
 | `/user-pnl`       | GET      | Get profit and loss for a user         | `user`              |
 | `/total-rebates`  | GET      | Get total rebates claimed by a user    | `user`              |
 | `/total-referrals`| GET      | Get total referrals made by a user     | `user`              |
+| `/latest-trades`  | GET      | Get latest 100 trades across all users | None                |
 | `/graphql`        | GET/POST | GraphQL API endpoint                   | N/A                 |
 
 #### Response Format
@@ -549,6 +551,81 @@ GET http://localhost:42069/total-referrals?user=0x123456789012345678901234567890
 **Error Responses:**
 
 - `400 Bad Request`: Missing or invalid user address parameter
+
+#### Latest Trades Endpoint
+
+Get the latest 100 trades across all users at `http://localhost:42069/latest-trades`.
+
+**Query Parameters:**
+
+- None
+
+**Response Data:**
+
+- Array of trade objects (up to 100), each containing:
+  - `id`: Unique trade identifier
+  - `txHash`: Transaction hash of the trade
+  - `timestamp`: Block timestamp of the trade (as string, serialized from BigInt)
+  - `isBuy`: `true` for mints (buys), `false` for redeems (sells)
+  - `baseAssetAmount`: Amount of base asset (as string, serialized from BigInt)
+  - `leveragedTokenAmount`: Amount of leveraged tokens (as string, serialized from BigInt)
+  - `leveragedToken`: Address of the leveraged token
+  - `sender`: Address initiating the trade
+  - `recipient`: Address receiving the tokens
+  - `targetLeverage`: Target leverage of the leveraged token (as string, serialized from BigInt)
+  - `isLong`: Whether the leveraged token is a long position
+  - `asset`: Base asset symbol
+
+Trades are ordered by timestamp descending (newest first).
+
+**Example Request:**
+
+```
+GET http://localhost:42069/latest-trades
+```
+
+**Example Success Response:**
+
+```json
+{
+  "status": "success",
+  "data": [
+    {
+      "id": "0xabc123...",
+      "txHash": "0xdef456...",
+      "timestamp": "1704067200",
+      "isBuy": true,
+      "baseAssetAmount": "1000000000",
+      "leveragedTokenAmount": "5000000000000000000",
+      "leveragedToken": "0x1eefbacfea06d786ce012c6fc861bec6c7a828c1",
+      "sender": "0x1234567890123456789012345678901234567890",
+      "recipient": "0x9876543210987654321098765432109876543210",
+      "targetLeverage": "1000000000000000000",
+      "isLong": true,
+      "asset": "USDC"
+    },
+    {
+      "id": "0xghi789...",
+      "txHash": "0xjkl012...",
+      "timestamp": "1704153600",
+      "isBuy": false,
+      "baseAssetAmount": "500000000",
+      "leveragedTokenAmount": "2500000000000000000",
+      "leveragedToken": "0x1eefbacfea06d786ce012c6fc861bec6c7a828c1",
+      "sender": "0x9876543210987654321098765432109876543210",
+      "recipient": "0x1234567890123456789012345678901234567890",
+      "targetLeverage": "1000000000000000000",
+      "isLong": true,
+      "asset": "USDC"
+    }
+  ],
+  "error": null
+}
+```
+
+**Error Responses:**
+
+- None (always returns success with an array, which may be empty if there are no trades)
 
 ## Scripts
 

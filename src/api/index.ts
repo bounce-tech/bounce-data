@@ -13,6 +13,7 @@ import getUsersTrades from "./endpoints/users-trades";
 import { bigIntSerializationMiddleware } from "./utils/serialize-bigint";
 import getTotalRebatesForUser from "./endpoints/total-rebates-for-user";
 import getTotalReferralsForUser from "./endpoints/total-referrals-for-user";
+import getLatestTrades from "./endpoints/latest-trades";
 
 const app = new Hono();
 
@@ -90,6 +91,12 @@ app.get("/total-referrals", async (c) => {
   if (!isAddress(user)) return c.json(formatError("Invalid user address"), 400);
   const totalReferrals = await getTotalReferralsForUser(user);
   return c.json(formatSuccess(totalReferrals));
+});
+
+// Latest trades endpoint
+app.get("/latest-trades", async (c) => {
+  const trades = await getLatestTrades();
+  return c.json(formatSuccess(trades));
 });
 
 export default app;
