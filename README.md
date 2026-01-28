@@ -131,11 +131,11 @@ Stores fees paid from leveraged tokens.
 
 The project indexes events from the Bounce Tech protocol:
 
-1. **Bounce Tech Factory Contract** (`0xaBD5D943b4Bb1D25C6639dD264243b246CC3aA51`)
+1. **Bounce Tech Factory Contract** (address imported from `@bouncetech/contracts` package)
 
    - `CreateLeveragedToken`: Creates a new leveraged token record and reads token metadata (symbol, name, decimals) from the contract
 
-2. **Bounce Tech LeveragedToken Contracts** (factory pattern)
+2. **Bounce Tech LeveragedToken Contracts** (factory pattern, with 24 pre-configured addresses)
 
    - `Mint`: Records buy trades
    - `Redeem`: Records sell trades
@@ -143,11 +143,11 @@ The project indexes events from the Bounce Tech protocol:
    - `Transfer`: Records ERC-20 token transfers
    - `SendFeesToTreasury`: Records fees paid from leveraged tokens
 
-3. **Bounce Tech Referrals Contract** (`0x82A4063f4d05bb7BF18DF314DC5B63b655E86cBD`)
+3. **Bounce Tech Referrals Contract** (address imported from `@bouncetech/contracts` package)
    - `JoinWithReferral`: Records when users join with a referral code
    - `ClaimRebate`: Records rebate claims from the referral system
 
-The indexer uses block-based indexing starting from block `16731647` and processes new blocks in real-time.
+The indexer uses block-based indexing starting from block `21549398` and processes new blocks in real-time.
 
 ## Querying
 
@@ -189,13 +189,15 @@ The API provides custom REST endpoints for querying leveraged token data. All en
 
 #### Endpoints Summary
 
-| Endpoint        | Method   | Description                            | Required Parameters |
-| --------------- | -------- | -------------------------------------- | ------------------- |
-| `/stats`        | GET      | Get aggregated protocol statistics     | None                |
-| `/traded-lts`   | GET      | Get leveraged tokens a user has traded | `user`              |
-| `/users-trades` | GET      | Get all trades for a user              | `user`              |
-| `/user-pnl`     | GET      | Get profit and loss for a user         | `user`              |
-| `/graphql`      | GET/POST | GraphQL API endpoint                   | N/A                 |
+| Endpoint          | Method   | Description                            | Required Parameters |
+| ----------------- | -------- | -------------------------------------- | ------------------- |
+| `/stats`          | GET      | Get aggregated protocol statistics     | None                |
+| `/traded-lts`     | GET      | Get leveraged tokens a user has traded | `user`              |
+| `/users-trades`   | GET      | Get all trades for a user              | `user`              |
+| `/user-pnl`       | GET      | Get profit and loss for a user         | `user`              |
+| `/total-rebates`  | GET      | Get total rebates claimed by a user    | `user`              |
+| `/total-referrals`| GET      | Get total referrals made by a user     | `user`              |
+| `/graphql`        | GET/POST | GraphQL API endpoint                   | N/A                 |
 
 #### Response Format
 
@@ -557,6 +559,8 @@ GET http://localhost:42069/total-referrals?user=0x123456789012345678901234567890
 - `npm run codegen`: Generate TypeScript types
 - `npm run lint`: Run ESLint
 - `npm run typecheck`: Run TypeScript type checking
+- `npm run test`: Run tests
+- `npm run test:watch`: Run tests in watch mode
 
 ## Learn More
 
