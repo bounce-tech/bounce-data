@@ -192,6 +192,24 @@ The API provides custom REST endpoints for querying leveraged token data. All en
 
 **Local Development:** When running locally, endpoints are served at `http://localhost:42069`.
 
+### API Usage Terms
+
+This API is publicly available for use by anyone. However, to ensure fair access and maintain service quality for all users, please observe the following guidelines:
+
+**Fair Use Policy:**
+- Use the API respectfully and avoid excessive or unnecessary requests
+- Implement appropriate caching mechanisms to reduce redundant API calls
+- Do not attempt to scrape, overload, or abuse the service
+- For high-volume or commercial use cases, please contact us to discuss appropriate arrangements
+
+**Service Availability:**
+- The API is provided "as-is" without warranty
+- We reserve the right to monitor usage patterns and implement rate limiting as needed
+- Access may be restricted or suspended for users who violate these terms or engage in abusive behavior
+- We are not responsible for any downtime, errors, or data inconsistencies
+
+By using this API, you agree to use it in a manner that respects the service and other users. Thank you for your cooperation.
+
 #### Endpoints Summary
 
 | Endpoint        | Method   | Description                            | Required Parameters |
