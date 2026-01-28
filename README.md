@@ -179,7 +179,13 @@ query MyQuery {
 
 ### API
 
-The API provides custom REST endpoints for querying leveraged token data. All endpoints are served at `http://localhost:42069` and use GET requests.
+The API provides custom REST endpoints for querying leveraged token data. All endpoints use GET requests.
+
+**Live Endpoint:** The indexing API is available at `https://indexing.bounce.tech/`. For example:
+- `https://indexing.bounce.tech/stats` - Get protocol statistics
+- `https://indexing.bounce.tech/users-trades?user=0x...` - Get user trades
+
+**Local Development:** When running locally, endpoints are served at `http://localhost:42069`.
 
 #### Endpoints Summary
 
@@ -226,7 +232,10 @@ All API endpoints follow a consistent response structure.
 
 #### Stats Endpoint
 
-Get aggregated protocol statistics at `http://localhost:42069/stats`.
+Get aggregated protocol statistics.
+
+**Live:** `https://indexing.bounce.tech/stats`  
+**Local:** `http://localhost:42069/stats`
 
 **Response Data:**
 
