@@ -39,7 +39,6 @@ The dev server will:
 
 - Connect to the database
 - Start indexing from the configured start block
-- Serve the GraphQL API at `http://localhost:42069/graphql`
 - Serve custom REST API endpoints at `http://localhost:42069`:
   - `/stats` - Protocol statistics
   - `/traded-lts` - Leveraged tokens traded by a user
@@ -152,32 +151,6 @@ The indexer uses block-based indexing starting from block `21549398` and process
 
 ## Querying
 
-### GraphQL
-
-Visit `http://localhost:42069/graphql` to explore the auto-generated GraphQL API.
-
-Example query:
-
-```graphql
-query MyQuery {
-  trades {
-    items {
-      isBuy
-      leveragedTokenAmount
-      timestamp
-      baseAssetAmount
-      leveragedToken {
-        address
-        marketId
-        isLong
-        name
-        symbol
-      }
-    }
-  }
-}
-```
-
 ### API
 
 The API provides custom REST endpoints for querying leveraged token data. All endpoints use GET requests.
@@ -217,7 +190,6 @@ By using this API, you agree to use it in a manner that respects the service and
 | `/total-rebates`  | GET      | Get total rebates claimed by a user    | `user`              |
 | `/total-referrals`| GET      | Get total referrals made by a user     | `user`              |
 | `/latest-trades`  | GET      | Get latest 100 trades across all users | None                |
-| `/graphql`        | GET/POST | GraphQL API endpoint                   | N/A                 |
 
 #### Response Format
 

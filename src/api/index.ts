@@ -1,8 +1,5 @@
-import { db } from "ponder:api";
-import schema from "ponder:schema";
 import { Hono } from "hono";
 import { cors } from "hono/cors";
-import { client, graphql } from "ponder";
 import { Address, isAddress } from "viem";
 import getTradedLtsForUser from "./endpoints/traded-lts-for-user";
 import getStats from "./endpoints/stats";
@@ -34,10 +31,6 @@ app.use(
 
 // Global BigInt serialization middleware
 app.use("*", bigIntSerializationMiddleware);
-
-// Use Ponder client and graphql
-app.use("/", graphql({ db, schema }));
-app.use("/graphql", graphql({ db, schema }));
 
 // Stats endpoint
 app.get("/stats", async (c) => {
