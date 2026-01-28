@@ -40,7 +40,6 @@ The dev server will:
 - Connect to the database
 - Start indexing from the configured start block
 - Serve the GraphQL API at `http://localhost:42069/graphql`
-- Serve SQL over HTTP at `http://localhost:42069/sql`
 - Serve custom REST API endpoints at `http://localhost:42069`:
   - `/stats` - Protocol statistics
   - `/traded-lts` - Leveraged tokens traded by a user
@@ -178,13 +177,15 @@ query MyQuery {
 }
 ```
 
-### SQL over HTTP
-
-Query tables directly using SQL over HTTP at `http://localhost:42069/sql`.
-
 ### API
 
-The API provides custom REST endpoints for querying leveraged token data. All endpoints are served at `http://localhost:42069` and use GET requests.
+The API provides custom REST endpoints for querying leveraged token data. All endpoints use GET requests.
+
+**Live Endpoint:** The indexing API is available at `https://indexing.bounce.tech/`. For example:
+- `https://indexing.bounce.tech/stats` - Get protocol statistics
+- `https://indexing.bounce.tech/users-trades?user=0x...` - Get user trades
+
+**Local Development:** When running locally, endpoints are served at `http://localhost:42069`.
 
 #### Endpoints Summary
 
@@ -197,7 +198,6 @@ The API provides custom REST endpoints for querying leveraged token data. All en
 | `/total-rebates`  | GET      | Get total rebates claimed by a user    | `user`              |
 | `/total-referrals`| GET      | Get total referrals made by a user     | `user`              |
 | `/graphql`        | GET/POST | GraphQL API endpoint                   | N/A                 |
-| `/sql/*`          | GET/POST | SQL over HTTP endpoint                 | N/A                 |
 
 #### Response Format
 
@@ -234,7 +234,10 @@ All API endpoints follow a consistent response structure.
 
 #### Stats Endpoint
 
-Get aggregated protocol statistics at `http://localhost:42069/stats`.
+Get aggregated protocol statistics.
+
+**Live:** `https://indexing.bounce.tech/stats`  
+**Local:** `http://localhost:42069/stats`
 
 **Response Data:**
 

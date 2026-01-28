@@ -35,7 +35,6 @@ app.use(
 app.use("*", bigIntSerializationMiddleware);
 
 // Use Ponder client and graphql
-app.use("/sql/*", client({ db, schema }));
 app.use("/", graphql({ db, schema }));
 app.use("/graphql", graphql({ db, schema }));
 
