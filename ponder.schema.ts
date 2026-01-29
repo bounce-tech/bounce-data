@@ -61,6 +61,7 @@ export const leveragedTokensRelations = relations(
   ({ many }) => ({
     trades: many(trade),
     transfers: many(transfer),
+    fees: many(fee),
   })
 );
 
