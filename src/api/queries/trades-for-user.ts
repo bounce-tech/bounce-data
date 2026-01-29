@@ -17,23 +17,27 @@ export interface Trade {
 }
 
 const getTradesForUser = async (user: Address): Promise<Trade[]> => {
-  const tradesData = await db
-    .select({
-      timestamp: schema.trade.timestamp,
-      isBuy: schema.trade.isBuy,
-      baseAssetAmount: schema.trade.baseAssetAmount,
-      leveragedTokenAmount: schema.trade.leveragedTokenAmount,
-      leveragedToken: schema.trade.leveragedToken,
-    })
-    .from(schema.trade)
-    .where(eq(schema.trade.recipient, user as Address));
-  return tradesData.map((trade) => ({
-    timestamp: new Date(Number(trade.timestamp)),
-    type: trade.isBuy ? TradeType.MINT : TradeType.REDEEM,
-    baseAssetAmount: trade.baseAssetAmount,
-    leveragedTokenAmount: trade.leveragedTokenAmount,
-    leveragedToken: trade.leveragedToken as Address,
-  }));
+  try {
+    const tradesData = await db
+      .select({
+        timestamp: schema.trade.timestamp,
+        isBuy: schema.trade.isBuy,
+        baseAssetAmount: schema.trade.baseAssetAmount,
+        leveragedTokenAmount: schema.trade.leveragedTokenAmount,
+        leveragedToken: schema.trade.leveragedToken,
+      })
+      .from(schema.trade)
+      .where(eq(schema.trade.recipient, user as Address));
+    return tradesData.map((trade) => ({
+      timestamp: new Date(Number(trade.timestamp)),
+      type: trade.isBuy ? TradeType.MINT : TradeType.REDEEM,
+      baseAssetAmount: trade.baseAssetAmount,
+      leveragedTokenAmount: trade.leveragedTokenAmount,
+      leveragedToken: trade.leveragedToken as Address,
+    }));
+  } catch (error) {
+    throw new Error("Failed to fetch trades for user");
+  }
 };
 
 export default getTradesForUser;

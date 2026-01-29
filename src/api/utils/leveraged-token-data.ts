@@ -31,24 +31,28 @@ export interface LeveragedTokenData {
 const getLeveragedTokenData = async (
   user?: Address
 ): Promise<LeveragedTokenData[]> => {
-  // Querying leveraged token contracts
-  let leveragedTokenData: LeveragedTokenData[] = [];
-  if (user) {
-    leveragedTokenData = (await publicClients["hyperEvm"].readContract({
-      abi: LEVERAGED_TOKEN_HELPER_ABI,
-      address: LEVERAGED_TOKEN_HELPER_ADDRESS,
-      functionName: "getLeveragedTokens",
-      args: [user, false],
-    })) as unknown as LeveragedTokenData[];
-  } else {
-    leveragedTokenData = (await publicClients["hyperEvm"].readContract({
-      abi: LEVERAGED_TOKEN_HELPER_ABI,
-      address: LEVERAGED_TOKEN_HELPER_ADDRESS,
-      functionName: "getLeveragedTokens",
-      args: [],
-    })) as unknown as LeveragedTokenData[];
+  try {
+    // Querying leveraged token contracts
+    let leveragedTokenData: LeveragedTokenData[] = [];
+    if (user) {
+      leveragedTokenData = (await publicClients["hyperEvm"].readContract({
+        abi: LEVERAGED_TOKEN_HELPER_ABI,
+        address: LEVERAGED_TOKEN_HELPER_ADDRESS,
+        functionName: "getLeveragedTokens",
+        args: [user, false],
+      })) as unknown as LeveragedTokenData[];
+    } else {
+      leveragedTokenData = (await publicClients["hyperEvm"].readContract({
+        abi: LEVERAGED_TOKEN_HELPER_ABI,
+        address: LEVERAGED_TOKEN_HELPER_ADDRESS,
+        functionName: "getLeveragedTokens",
+        args: [],
+      })) as unknown as LeveragedTokenData[];
+    }
+    return leveragedTokenData;
+  } catch (error) {
+    throw new Error("Failed to fetch leveraged token data from blockchain");
   }
-  return leveragedTokenData;
 };
 
 export default getLeveragedTokenData;

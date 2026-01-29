@@ -34,62 +34,90 @@ app.use("*", bigIntSerializationMiddleware);
 
 // Stats endpoint
 app.get("/stats", async (c) => {
-  const stats = await getStats();
-  return c.json(formatSuccess(stats));
+  try {
+    const stats = await getStats();
+    return c.json(formatSuccess(stats));
+  } catch (error) {
+    return c.json(formatError("Failed to fetch protocol statistics"), 500);
+  }
 });
 
 // User traded LTs endpoint
 app.get("/traded-lts", async (c) => {
-  const user = c.req.query("user");
-  if (!user) return c.json(formatError("Missing user parameter"), 400);
-  if (!isAddress(user)) return c.json(formatError("Invalid user address"), 400);
-  const tradedLts = await getTradedLtsForUser(user);
-  return c.json(formatSuccess(tradedLts));
+  try {
+    const user = c.req.query("user");
+    if (!user) return c.json(formatError("Missing user parameter"), 400);
+    if (!isAddress(user)) return c.json(formatError("Invalid user address"), 400);
+    const tradedLts = await getTradedLtsForUser(user);
+    return c.json(formatSuccess(tradedLts));
+  } catch (error) {
+    return c.json(formatError("Failed to fetch traded leveraged tokens"), 500);
+  }
 });
 
 // User's trades
 app.get("/users-trades", async (c) => {
-  const user = c.req.query("user");
-  if (!user) return c.json(formatError("Missing user parameter"), 400);
-  if (!isAddress(user)) return c.json(formatError("Invalid user address"), 400);
-  const asset = c.req.query("asset");
-  const lt = c.req.query("leveragedTokenAddress");
-  if (lt && !isAddress(lt)) return c.json(formatError("Invalid lt"), 400);
-  const trades = await getUsersTrades(user, asset, lt as Address | undefined);
-  return c.json(formatSuccess(trades));
+  try {
+    const user = c.req.query("user");
+    if (!user) return c.json(formatError("Missing user parameter"), 400);
+    if (!isAddress(user)) return c.json(formatError("Invalid user address"), 400);
+    const asset = c.req.query("asset");
+    const lt = c.req.query("leveragedTokenAddress");
+    if (lt && !isAddress(lt)) return c.json(formatError("Invalid lt"), 400);
+    const trades = await getUsersTrades(user, asset, lt as Address | undefined);
+    return c.json(formatSuccess(trades));
+  } catch (error) {
+    return c.json(formatError("Failed to fetch user trades"), 500);
+  }
 });
 
 // User PnL endpoint
 app.get("/user-pnl", async (c) => {
-  const user = c.req.query("user");
-  if (!user) return c.json(formatError("Missing user parameter"), 400);
-  if (!isAddress(user)) return c.json(formatError("Invalid user address"), 400);
-  const pnl = await getPnlForUser(user);
-  return c.json(formatSuccess(pnl));
+  try {
+    const user = c.req.query("user");
+    if (!user) return c.json(formatError("Missing user parameter"), 400);
+    if (!isAddress(user)) return c.json(formatError("Invalid user address"), 400);
+    const pnl = await getPnlForUser(user);
+    return c.json(formatSuccess(pnl));
+  } catch (error) {
+    return c.json(formatError("Failed to fetch profit and loss data"), 500);
+  }
 });
 
 // User total rebates
 app.get("/total-rebates", async (c) => {
-  const user = c.req.query("user");
-  if (!user) return c.json(formatError("Missing user parameter"), 400);
-  if (!isAddress(user)) return c.json(formatError("Invalid user address"), 400);
-  const totalRebates = await getTotalRebatesForUser(user);
-  return c.json(formatSuccess(totalRebates));
+  try {
+    const user = c.req.query("user");
+    if (!user) return c.json(formatError("Missing user parameter"), 400);
+    if (!isAddress(user)) return c.json(formatError("Invalid user address"), 400);
+    const totalRebates = await getTotalRebatesForUser(user);
+    return c.json(formatSuccess(totalRebates));
+  } catch (error) {
+    return c.json(formatError("Failed to fetch total rebates"), 500);
+  }
 });
 
 // User's total referrals
 app.get("/total-referrals", async (c) => {
-  const user = c.req.query("user");
-  if (!user) return c.json(formatError("Missing user parameter"), 400);
-  if (!isAddress(user)) return c.json(formatError("Invalid user address"), 400);
-  const totalReferrals = await getTotalReferralsForUser(user);
-  return c.json(formatSuccess(totalReferrals));
+  try {
+    const user = c.req.query("user");
+    if (!user) return c.json(formatError("Missing user parameter"), 400);
+    if (!isAddress(user)) return c.json(formatError("Invalid user address"), 400);
+    const totalReferrals = await getTotalReferralsForUser(user);
+    return c.json(formatSuccess(totalReferrals));
+  } catch (error) {
+    return c.json(formatError("Failed to fetch total referrals"), 500);
+  }
 });
 
 // Latest trades endpoint
 app.get("/latest-trades", async (c) => {
-  const trades = await getLatestTrades();
-  return c.json(formatSuccess(trades));
+  try {
+    const trades = await getLatestTrades();
+    return c.json(formatSuccess(trades));
+  } catch (error) {
+    return c.json(formatError("Failed to fetch latest trades"), 500);
+  }
 });
 
 export default app;

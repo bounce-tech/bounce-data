@@ -20,51 +20,55 @@ interface UserPnl {
 }
 
 const getPnlForUser = async (user: Address) => {
-  const [trades, transfers, leveragedTokenData] = await Promise.all([
-    getTradesForUser(user),
-    getTransfersForUser(user),
-    getLeveragedTokenData(user),
-  ]);
-  const tradeLts = trades.map((trade) => trade.leveragedToken);
-  const transferLts = transfers.map((transfer) => transfer.leveragedToken);
-  const uniqueLts = [...new Set([...tradeLts, ...transferLts])];
-  const leveragedTokens: Record<Address, LeveragedTokenPnl> = {};
-  let totalRealized = 0;
-  let totalUnrealized = 0;
-  for (const lt of uniqueLts) {
-    const data = leveragedTokenData.find(
-      (l) => l.leveragedToken.toLowerCase() === lt
-    );
-    if (!data) {
-      console.error(`Leveraged token ${lt} not found in leveraged token data`);
-      continue;
+  try {
+    const [trades, transfers, leveragedTokenData] = await Promise.all([
+      getTradesForUser(user),
+      getTransfersForUser(user),
+      getLeveragedTokenData(user),
+    ]);
+    const tradeLts = trades.map((trade) => trade.leveragedToken);
+    const transferLts = transfers.map((transfer) => transfer.leveragedToken);
+    const uniqueLts = [...new Set([...tradeLts, ...transferLts])];
+    const leveragedTokens: Record<Address, LeveragedTokenPnl> = {};
+    let totalRealized = 0;
+    let totalUnrealized = 0;
+    for (const lt of uniqueLts) {
+      const data = leveragedTokenData.find(
+        (l) => l.leveragedToken.toLowerCase() === lt
+      );
+      if (!data) {
+        console.error(`Leveraged token ${lt} not found in leveraged token data`);
+        continue;
+      }
+      const ltTrades = trades.filter((t) => t.leveragedToken === lt);
+      const ltTransfers = transfers.filter((t) => t.leveragedToken === lt);
+      const actions = convertToActions(ltTrades, ltTransfers);
+      const { cost, realized } = getCostAndRealized(actions);
+      const realizedNumber = bigIntToNumber(realized, 6);
+      const costNumber = bigIntToNumber(cost, 6);
+      const costScaled = convertDecimals(cost, 6, 18);
+      const ltBalance = data.balanceOf + data.userCredit;
+      const exchangeRate = data.exchangeRate;
+      const currentValue = mul(ltBalance, exchangeRate);
+      const unrealized = bigIntToNumber(currentValue - costScaled, 18);
+      const unrealizedPercent = costNumber === 0 ? 0 : unrealized / costNumber;
+      leveragedTokens[lt] = {
+        realized: realizedNumber,
+        unrealized,
+        unrealizedPercent: Number(unrealizedPercent.toFixed(6)),
+      };
+      totalRealized += realizedNumber;
+      totalUnrealized += unrealized;
     }
-    const ltTrades = trades.filter((t) => t.leveragedToken === lt);
-    const ltTransfers = transfers.filter((t) => t.leveragedToken === lt);
-    const actions = convertToActions(ltTrades, ltTransfers);
-    const { cost, realized } = getCostAndRealized(actions);
-    const realizedNumber = bigIntToNumber(realized, 6);
-    const costNumber = bigIntToNumber(cost, 6);
-    const costScaled = convertDecimals(cost, 6, 18);
-    const ltBalance = data.balanceOf + data.userCredit;
-    const exchangeRate = data.exchangeRate;
-    const currentValue = mul(ltBalance, exchangeRate);
-    const unrealized = bigIntToNumber(currentValue - costScaled, 18);
-    const unrealizedPercent = costNumber === 0 ? 0 : unrealized / costNumber;
-    leveragedTokens[lt] = {
-      realized: realizedNumber,
-      unrealized,
-      unrealizedPercent: Number(unrealizedPercent.toFixed(6)),
+    const userPnl: UserPnl = {
+      totalRealized,
+      totalUnrealized,
+      leveragedTokens,
     };
-    totalRealized += realizedNumber;
-    totalUnrealized += unrealized;
+    return userPnl;
+  } catch (error) {
+    throw new Error("Failed to fetch profit and loss data");
   }
-  const userPnl: UserPnl = {
-    totalRealized,
-    totalUnrealized,
-    leveragedTokens,
-  };
-  return userPnl;
 };
 
 export default getPnlForUser;

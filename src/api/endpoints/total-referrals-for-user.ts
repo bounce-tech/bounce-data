@@ -5,12 +5,16 @@ import { eq } from "drizzle-orm";
 import { Address } from "viem";
 
 const getTotalReferralsForUser = async (user: Address) => {
-  const result = await db
-    .select({ total: sql<number>`count(*)` })
-    .from(schema.referral)
-    .where(eq(schema.referral.referrer, user));
+  try {
+    const result = await db
+      .select({ total: sql<number>`count(*)` })
+      .from(schema.referral)
+      .where(eq(schema.referral.referrer, user));
 
-  return result[0]?.total ?? 0;
+    return result[0]?.total ?? 0;
+  } catch (error) {
+    throw new Error("Failed to fetch total referrals");
+  }
 };
 
 export default getTotalReferralsForUser;
