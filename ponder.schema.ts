@@ -34,18 +34,24 @@ export const transfer = onchainTable("transfer", (t) => ({
   txHash: t.hex().notNull(),
 }));
 
-export const referral = onchainTable("referral", (t) => ({
-  id: t.text().primaryKey(),
-  user: t.hex().notNull(),
-  code: t.text().notNull(),
-  referrer: t.hex().notNull(),
-}));
-
-export const rebate = onchainTable("rebate", (t) => ({
-  id: t.text().primaryKey(),
-  sender: t.hex().notNull(),
-  to: t.hex().notNull(),
-  rebate: t.bigint().notNull(),
+export const user = onchainTable("user", (t) => ({
+  address: t.hex().notNull().primaryKey(),
+  referralCode: t.text(),
+  referrerCode: t.text(),
+  referrerAddress: t.hex(),
+  referredUserCount: t.integer().notNull().default(0),
+  totalRebates: t.bigint().notNull().default(0n),
+  referrerRebates: t.bigint().notNull().default(0n),
+  referreeRebates: t.bigint().notNull().default(0n),
+  claimedRebates: t.bigint().notNull().default(0n),
+  tradeCount: t.integer().notNull().default(0),
+  mintVolumeNominal: t.bigint().notNull().default(0n),
+  redeemVolumeNominal: t.bigint().notNull().default(0n),
+  totalVolumeNominal: t.bigint().notNull().default(0n),
+  mintVolumeNotional: t.bigint().notNull().default(0n),
+  redeemVolumeNotional: t.bigint().notNull().default(0n),
+  totalVolumeNotional: t.bigint().notNull().default(0n),
+  lastTradeTimestamp: t.bigint().notNull().default(0n),
 }));
 
 export const fee = onchainTable("fee", (t) => ({
