@@ -9,7 +9,7 @@ ponder.on("Referrals:AddReferrer", async ({ event, context }) => {
   await ensureUser(context.db, referrer);
   await context.db
     .update(schema.user, { address: referrer })
-    .set({ referralCode: referralCode })
+    .set({ referralCode: referralCode });
 });
 
 // event JoinWithReferral(address indexed referee, address indexed referrer, string referralCode);
@@ -44,10 +44,6 @@ ponder.on("Referrals:DonateRebate", async ({ event, context }) => {
   const { to, referrerRebate, refereeRebate } = event.args;
   await ensureUser(context.db, to);
 
-  // Fetch referee once to get referrerAddress if needed
-  const referee = await context.db.find(schema.user, { address: to });
-  if (!referee) throw new Error("Referee not found");
-
   if (refereeRebate > 0) {
     await context.db
       .update(schema.user, { address: to })
@@ -58,6 +54,8 @@ ponder.on("Referrals:DonateRebate", async ({ event, context }) => {
   }
 
   if (referrerRebate > 0) {
+    const referee = await context.db.find(schema.user, { address: to });
+    if (!referee) throw new Error("Referee not found");
     if (!referee.referrerAddress) throw new Error("Referee has no referrer");
     await context.db
       .update(schema.user, { address: referee.referrerAddress })
