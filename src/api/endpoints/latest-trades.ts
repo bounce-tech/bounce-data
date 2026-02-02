@@ -1,6 +1,7 @@
 import { db } from "ponder:api";
 import { eq, desc } from "drizzle-orm";
 import schema from "ponder:schema";
+import { MAX_QUERY_SIZE } from "../utils/config";
 
 const getLatestTrades = async () => {
     try {
@@ -25,7 +26,7 @@ const getLatestTrades = async () => {
                 eq(schema.trade.leveragedToken, schema.leveragedToken.address)
             )
             .orderBy(desc(schema.trade.timestamp))
-            .limit(100);
+            .limit(MAX_QUERY_SIZE);
         return tradesData;
     } catch (error) {
         throw new Error("Failed to fetch latest trades");

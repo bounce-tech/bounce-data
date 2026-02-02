@@ -14,6 +14,7 @@ import getLatestTrades from "./endpoints/latest-trades";
 import getAllUsers from "./endpoints/get-all-users";
 import getUser from "./endpoints/get-user";
 import getReferrers from "./endpoints/get-referrers";
+import { validatePaginationParams } from "./utils/validate";
 
 const app = new Hono();
 
@@ -67,7 +68,20 @@ app.get("/user-trades", async (c) => {
     const asset = c.req.query("asset");
     const lt = c.req.query("leveragedTokenAddress");
     if (lt && !isAddress(lt)) return c.json(formatError("Invalid lt"), 400);
-    const trades = await getUsersTrades(user, asset, lt as Address | undefined);
+    const after = c.req.query("after");
+    const before = c.req.query("before");
+    const limit = c.req.query("limit");
+    const validationError = validatePaginationParams(after, before, limit);
+    if (validationError) return c.json(formatError(validationError), 400);
+    const parsedLimit = limit ? parseInt(limit, 10) : undefined;
+    const trades = await getUsersTrades(
+      user,
+      asset,
+      lt as Address | undefined,
+      after,
+      before,
+      parsedLimit ?? 100
+    );
     return c.json(formatSuccess(trades));
   } catch (error) {
     return c.json(formatError("Failed to fetch user trades"), 500);
@@ -142,7 +156,13 @@ app.get("/latest-trades", async (c) => {
 // All users endpoint
 app.get("/users", async (c) => {
   try {
-    const users = await getAllUsers();
+    const after = c.req.query("after");
+    const before = c.req.query("before");
+    const limit = c.req.query("limit");
+    const validationError = validatePaginationParams(after, before, limit);
+    if (validationError) return c.json(formatError(validationError), 400);
+    const parsedLimit = limit ? parseInt(limit, 10) : undefined;
+    const users = await getAllUsers(after, before, parsedLimit ?? 100);
     return c.json(formatSuccess(users));
   } catch (error) {
     return c.json(formatError("Failed to fetch all users"), 500);

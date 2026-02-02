@@ -332,12 +332,24 @@ Get all trades for a specific user at `http://localhost:42069/user-trades`.
 - `user` (required): Ethereum address of the user
 - `asset` (optional): Filter trades by asset (base asset symbol)
 - `leveragedTokenAddress` (optional): Filter trades by specific leveraged token address
+- `after` (optional): Cursor for pagination (use `pageInfo.endCursor` from previous response)
+- `before` (optional): Cursor for backward pagination (use `pageInfo.startCursor` from previous response)
+- `limit` (optional): Number of items per page (default: 100, max: 100)
 
 **Note:** You can combine `asset` and `leveragedTokenAddress` filters. If both are provided, trades must match both conditions.
 
+**Cursor Pagination:**
+
+This endpoint supports cursor-based pagination for efficient navigation through large result sets. Trades are ordered by timestamp descending (newest first), then by ID ascending.
+
+- Use `after` with `pageInfo.endCursor` from the previous response to get the next page
+- Use `before` with `pageInfo.startCursor` from the previous response to get the previous page
+- The `limit` parameter controls how many items are returned per page (default: 100, maximum: 100)
+
 **Response Data:**
 
-- Array of trade objects, each containing:
+Paginated response containing:
+- `items`: Array of trade objects, each containing:
   - `id`: Unique trade identifier
   - `txHash`: Transaction hash of the trade
   - `timestamp`: Block timestamp of the trade (as string, serialized from BigInt)
@@ -348,23 +360,29 @@ Get all trades for a specific user at `http://localhost:42069/user-trades`.
   - `targetLeverage`: Target leverage of the leveraged token (as string, serialized from BigInt)
   - `isLong`: Whether the leveraged token is a long position
   - `asset`: Base asset symbol
+- `pageInfo`: Pagination information object containing:
+  - `startCursor`: Cursor for the first item in the current page (use with `before` for previous page)
+  - `endCursor`: Cursor for the last item in the current page (use with `after` for next page)
+  - `hasPreviousPage`: Whether there are more records before this page
+  - `hasNextPage`: Whether there are more records after this page
+- `totalCount`: Total number of records matching the query (always included)
 
-**Example Request:**
+**Example Request (First Page):**
 
 ```
-GET http://localhost:42069/user-trades?user=0x1234567890123456789012345678901234567890
+GET http://localhost:42069/user-trades?user=0x1234567890123456789012345678901234567890&limit=10
 ```
 
 **Example Request with Asset Filter:**
 
 ```
-GET http://localhost:42069/user-trades?user=0x1234567890123456789012345678901234567890&asset=USDC
+GET http://localhost:42069/user-trades?user=0x1234567890123456789012345678901234567890&asset=USDC&limit=20
 ```
 
-**Example Request with Leveraged Token Address Filter:**
+**Example Request (Next Page):**
 
 ```
-GET http://localhost:42069/user-trades?user=0x1234567890123456789012345678901234567890&leveragedTokenAddress=0x1eefbacfea06d786ce012c6fc861bec6c7a828c1
+GET http://localhost:42069/user-trades?user=0x1234567890123456789012345678901234567890&after=Mxhc3NDb3JlLTA=&limit=10
 ```
 
 **Example Request with Both Filters:**
@@ -378,32 +396,41 @@ GET http://localhost:42069/user-trades?user=0x1234567890123456789012345678901234
 ```json
 {
   "status": "success",
-  "data": [
-    {
-      "id": "0xabc123...",
-      "txHash": "0xdef456...",
-      "timestamp": "1704067200",
-      "isBuy": true,
-      "baseAssetAmount": "1000000000",
-      "leveragedTokenAmount": "5000000000000000000",
-      "leveragedToken": "0x1eefbacfea06d786ce012c6fc861bec6c7a828c1",
-      "targetLeverage": "1000000000000000000",
-      "isLong": true,
-      "asset": "USDC"
+  "data": {
+    "items": [
+      {
+        "id": "0xabc123...",
+        "txHash": "0xdef456...",
+        "timestamp": "1704067200",
+        "isBuy": true,
+        "baseAssetAmount": "1000000000",
+        "leveragedTokenAmount": "5000000000000000000",
+        "leveragedToken": "0x1eefbacfea06d786ce012c6fc861bec6c7a828c1",
+        "targetLeverage": "1000000000000000000",
+        "isLong": true,
+        "asset": "USDC"
+      },
+      {
+        "id": "0xghi789...",
+        "txHash": "0xjkl012...",
+        "timestamp": "1704153600",
+        "isBuy": false,
+        "baseAssetAmount": "500000000",
+        "leveragedTokenAmount": "2500000000000000000",
+        "leveragedToken": "0x1eefbacfea06d786ce012c6fc861bec6c7a828c1",
+        "targetLeverage": "1000000000000000000",
+        "isLong": true,
+        "asset": "USDC"
+      }
+    ],
+    "pageInfo": {
+      "startCursor": "Mxhc3NDb3JlLTA=",
+      "endCursor": "MxhcdoP9CVBhY",
+      "hasPreviousPage": false,
+      "hasNextPage": true
     },
-    {
-      "id": "0xghi789...",
-      "txHash": "0xjkl012...",
-      "timestamp": "1704153600",
-      "isBuy": false,
-      "baseAssetAmount": "500000000",
-      "leveragedTokenAmount": "2500000000000000000",
-      "leveragedToken": "0x1eefbacfea06d786ce012c6fc861bec6c7a828c1",
-      "targetLeverage": "1000000000000000000",
-      "isLong": true,
-      "asset": "USDC"
-    }
-  ],
+    "totalCount": 42
+  },
   "error": null
 }
 ```
@@ -420,7 +447,7 @@ GET http://localhost:42069/user-trades?user=0x1234567890123456789012345678901234
 
 **Error Responses:**
 
-- `400 Bad Request`: Missing or invalid user address parameter, or invalid leveraged token address parameter
+- `400 Bad Request`: Missing or invalid user address parameter, invalid leveraged token address parameter, or invalid limit parameter (must be between 1 and 100)
 
 #### User PnL Endpoint
 
@@ -635,11 +662,22 @@ Get all users from the user table at `http://localhost:42069/users`.
 
 **Query Parameters:**
 
-- None
+- `after` (optional): Cursor for pagination (use `pageInfo.endCursor` from previous response)
+- `before` (optional): Cursor for backward pagination (use `pageInfo.startCursor` from previous response)
+- `limit` (optional): Number of items per page (default: 100, max: 100)
+
+**Cursor Pagination:**
+
+This endpoint supports cursor-based pagination for efficient navigation through large result sets. Users are ordered by `lastTradeTimestamp` descending (most recently active first), then by address ascending.
+
+- Use `after` with `pageInfo.endCursor` from the previous response to get the next page
+- Use `before` with `pageInfo.startCursor` from the previous response to get the previous page
+- The `limit` parameter controls how many items are returned per page (default: 100, maximum: 100)
 
 **Response Data:**
 
-- Array of user objects, each containing trading and volume data:
+Paginated response containing:
+- `items`: Array of user objects, each containing trading and volume data:
   - `address`: User's Ethereum address (primary key)
   - `tradeCount`: Total number of trades made by the user (integer)
   - `mintVolumeNominal`: Total mint volume in nominal terms (as string, serialized from BigInt)
@@ -649,13 +687,25 @@ Get all users from the user table at `http://localhost:42069/users`.
   - `redeemVolumeNotional`: Total redeem volume in notional terms (as string, serialized from BigInt)
   - `totalVolumeNotional`: Total volume in notional terms (as string, serialized from BigInt)
   - `lastTradeTimestamp`: Timestamp of the user's last trade (as string, serialized from BigInt)
+- `pageInfo`: Pagination information object containing:
+  - `startCursor`: Cursor for the first item in the current page (use with `before` for previous page)
+  - `endCursor`: Cursor for the last item in the current page (use with `after` for next page)
+  - `hasPreviousPage`: Whether there are more records before this page
+  - `hasNextPage`: Whether there are more records after this page
+- `totalCount`: Total number of records matching the query (always included)
 
 **Note:** This endpoint excludes referral-related fields. For referral data, use the `/referrers` endpoint.
 
-**Example Request:**
+**Example Request (First Page):**
 
 ```
-GET http://localhost:42069/users
+GET http://localhost:42069/users?limit=20
+```
+
+**Example Request (Next Page):**
+
+```
+GET http://localhost:42069/users?after=Mxhc3NDb3JlLTA=&limit=20
 ```
 
 **Example Success Response:**
@@ -663,36 +713,46 @@ GET http://localhost:42069/users
 ```json
 {
   "status": "success",
-  "data": [
-    {
-      "address": "0x1234567890123456789012345678901234567890",
-      "tradeCount": 42,
-      "mintVolumeNominal": "10000000000",
-      "redeemVolumeNominal": "8000000000",
-      "totalVolumeNominal": "18000000000",
-      "mintVolumeNotional": "50000000000",
-      "redeemVolumeNotional": "40000000000",
-      "totalVolumeNotional": "90000000000",
-      "lastTradeTimestamp": "1704067200"
+  "data": {
+    "items": [
+      {
+        "address": "0x1234567890123456789012345678901234567890",
+        "tradeCount": 42,
+        "mintVolumeNominal": "10000000000",
+        "redeemVolumeNominal": "8000000000",
+        "totalVolumeNominal": "18000000000",
+        "mintVolumeNotional": "50000000000",
+        "redeemVolumeNotional": "40000000000",
+        "totalVolumeNotional": "90000000000",
+        "lastTradeTimestamp": "1704067200"
+      },
+      {
+        "address": "0x9876543210987654321098765432109876543210",
+        "tradeCount": 10,
+        "mintVolumeNominal": "5000000000",
+        "redeemVolumeNominal": "3000000000",
+        "totalVolumeNominal": "8000000000",
+        "mintVolumeNotional": "25000000000",
+        "redeemVolumeNotional": "15000000000",
+        "totalVolumeNotional": "40000000000",
+        "lastTradeTimestamp": "1704153600"
+      }
+    ],
+    "pageInfo": {
+      "startCursor": "Mxhc3NDb3JlLTA=",
+      "endCursor": "MxhcdoP9CVBhY",
+      "hasPreviousPage": false,
+      "hasNextPage": true
     },
-    {
-      "address": "0x9876543210987654321098765432109876543210",
-      "tradeCount": 10,
-      "mintVolumeNominal": "5000000000",
-      "redeemVolumeNominal": "3000000000",
-      "totalVolumeNominal": "8000000000",
-      "mintVolumeNotional": "25000000000",
-      "redeemVolumeNotional": "15000000000",
-      "totalVolumeNotional": "40000000000",
-      "lastTradeTimestamp": "1704153600"
-    }
-  ],
+    "totalCount": 150
+  },
   "error": null
 }
 ```
 
 **Error Responses:**
 
+- `400 Bad Request`: Invalid limit parameter (must be between 1 and 100)
 - `500 Internal Server Error`: Failed to fetch all users
 
 #### Single User Endpoint
