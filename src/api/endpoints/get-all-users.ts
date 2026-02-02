@@ -4,11 +4,23 @@ import { gt, desc, sql } from "drizzle-orm";
 import { PaginatedResponse } from "../utils/cursor-pagination";
 import { applyCursorFilter, calculatePageInfo } from "../utils/pagination-helpers";
 
+export interface UserSummary {
+  address: string;
+  tradeCount: number;
+  mintVolumeNominal: bigint;
+  redeemVolumeNominal: bigint;
+  totalVolumeNominal: bigint;
+  mintVolumeNotional: bigint;
+  redeemVolumeNotional: bigint;
+  totalVolumeNotional: bigint;
+  lastTradeTimestamp: bigint;
+}
+
 const getAllUsers = async (
   after?: string,
   before?: string,
   limit: number = 100
-): Promise<PaginatedResponse<any>> => {
+): Promise<PaginatedResponse<UserSummary>> => {
   try {
     const baseWhere = gt(schema.user.tradeCount, 0);
     const where = applyCursorFilter(

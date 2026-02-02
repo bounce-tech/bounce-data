@@ -2,8 +2,9 @@ import { db } from "ponder:api";
 import schema from "ponder:schema";
 import { eq } from "drizzle-orm";
 import { Address } from "viem";
+import { UserSummary } from "./get-all-users";
 
-const getUser = async (user: Address) => {
+const getUser = async (user: Address): Promise<UserSummary | null> => {
   try {
     const result = await db
       .select({
