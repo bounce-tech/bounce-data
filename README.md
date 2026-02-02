@@ -42,7 +42,7 @@ The dev server will:
 - Serve custom REST API endpoints at `http://localhost:42069`:
   - `/stats` - Protocol statistics
   - `/traded-lts` - Leveraged tokens traded by a user
-  - `/users-trades` - All trades for a user
+  - `/user-trades` - All trades for a user
   - `/user-pnl` - Profit and loss for a user
   - `/latest-trades` - Latest 100 trades across all users
   - `/users` - All users from the user table
@@ -166,7 +166,7 @@ The API provides custom REST endpoints for querying leveraged token data. All en
 
 **Live Endpoint:** The indexing API is available at `https://indexing.bounce.tech/`. For example:
 - `https://indexing.bounce.tech/stats` - Get protocol statistics
-- `https://indexing.bounce.tech/users-trades?user=0x...` - Get user trades
+- `https://indexing.bounce.tech/user-trades?user=0x...` - Get user trades
 
 **Local Development:** When running locally, endpoints are served at `http://localhost:42069`.
 
@@ -194,7 +194,7 @@ By using this API, you agree to use it in a manner that respects the service and
 | ----------------- | -------- | -------------------------------------- | ------------------- |
 | `/stats`          | GET      | Get aggregated protocol statistics     | None                |
 | `/traded-lts`     | GET      | Get leveraged tokens a user has traded | `user`              |
-| `/users-trades`   | GET      | Get all trades for a user              | `user`              |
+| `/user-trades`    | GET      | Get all trades for a user              | `user`              |
 | `/user-pnl`       | GET      | Get profit and loss for a user         | `user`              |
 | `/total-rebates`  | GET      | Get total rebates claimed by a user    | `user`              |
 | `/total-referrals`| GET      | Get total referrals made by a user     | `user`              |
@@ -323,9 +323,9 @@ GET http://localhost:42069/traded-lts?user=0x12345678901234567890123456789012345
 
 - `400 Bad Request`: Missing or invalid user address parameter
 
-#### Users Trades Endpoint
+#### User Trades Endpoint
 
-Get all trades for a specific user at `http://localhost:42069/users-trades`.
+Get all trades for a specific user at `http://localhost:42069/user-trades`.
 
 **Query Parameters:**
 
@@ -352,25 +352,25 @@ Get all trades for a specific user at `http://localhost:42069/users-trades`.
 **Example Request:**
 
 ```
-GET http://localhost:42069/users-trades?user=0x1234567890123456789012345678901234567890
+GET http://localhost:42069/user-trades?user=0x1234567890123456789012345678901234567890
 ```
 
 **Example Request with Asset Filter:**
 
 ```
-GET http://localhost:42069/users-trades?user=0x1234567890123456789012345678901234567890&asset=USDC
+GET http://localhost:42069/user-trades?user=0x1234567890123456789012345678901234567890&asset=USDC
 ```
 
 **Example Request with Leveraged Token Address Filter:**
 
 ```
-GET http://localhost:42069/users-trades?user=0x1234567890123456789012345678901234567890&leveragedTokenAddress=0x1eefbacfea06d786ce012c6fc861bec6c7a828c1
+GET http://localhost:42069/user-trades?user=0x1234567890123456789012345678901234567890&leveragedTokenAddress=0x1eefbacfea06d786ce012c6fc861bec6c7a828c1
 ```
 
 **Example Request with Both Filters:**
 
 ```
-GET http://localhost:42069/users-trades?user=0x1234567890123456789012345678901234567890&asset=USDC&leveragedTokenAddress=0x1eefbacfea06d786ce012c6fc861bec6c7a828c1
+GET http://localhost:42069/user-trades?user=0x1234567890123456789012345678901234567890&asset=USDC&leveragedTokenAddress=0x1eefbacfea06d786ce012c6fc861bec6c7a828c1
 ```
 
 **Example Success Response:**

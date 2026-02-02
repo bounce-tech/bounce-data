@@ -58,7 +58,23 @@ app.get("/traded-lts", async (c) => {
   }
 });
 
-// User's trades
+// User's trades (new endpoint)
+app.get("/user-trades", async (c) => {
+  try {
+    const user = c.req.query("user");
+    if (!user) return c.json(formatError("Missing user parameter"), 400);
+    if (!isAddress(user)) return c.json(formatError("Invalid user address"), 400);
+    const asset = c.req.query("asset");
+    const lt = c.req.query("leveragedTokenAddress");
+    if (lt && !isAddress(lt)) return c.json(formatError("Invalid lt"), 400);
+    const trades = await getUsersTrades(user, asset, lt as Address | undefined);
+    return c.json(formatSuccess(trades));
+  } catch (error) {
+    return c.json(formatError("Failed to fetch user trades"), 500);
+  }
+});
+
+// User's trades (legacy endpoint - kept for backward compatibility, will remove in the future)
 app.get("/users-trades", async (c) => {
   try {
     const user = c.req.query("user");
