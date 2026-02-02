@@ -38,16 +38,13 @@ export function applyCursorFilter<T extends SQL>(
 
 export function calculatePageInfo<T>(
     items: T[],
-    limit: number,
+    hasMore: boolean,
     after: string | undefined,
     before: string | undefined,
     getTimestamp: (item: T) => bigint | string,
     getId: (item: T) => string
 ): PageInfo {
-    const hasMore = items.length > limit;
-    const pageItems = hasMore ? items.slice(0, limit) : items;
-
-    if (pageItems.length === 0) {
+    if (items.length === 0) {
         return {
             startCursor: null,
             endCursor: null,
@@ -56,8 +53,8 @@ export function calculatePageInfo<T>(
         };
     }
 
-    const firstItem = pageItems[0]!;
-    const lastItem = pageItems[pageItems.length - 1]!;
+    const firstItem = items[0]!;
+    const lastItem = items[items.length - 1]!;
     const startCursor = createCursor({
         timestamp: getTimestamp(firstItem).toString(),
         id: getId(firstItem),

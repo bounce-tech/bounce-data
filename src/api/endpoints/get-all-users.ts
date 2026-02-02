@@ -49,16 +49,16 @@ const getAllUsers = async (
       .orderBy(desc(schema.user.lastTradeTimestamp), schema.user.address)
       .limit(limit + 1);
 
+    const hasMore = users.length > limit;
+    const items = hasMore ? users.slice(0, limit) : users;
     const pageInfo = calculatePageInfo(
-      users,
-      limit,
+      items,
+      hasMore,
       after,
       before,
       (item) => item.lastTradeTimestamp,
       (item) => item.address
     );
-
-    const items = users.length > limit ? users.slice(0, limit) : users;
 
     // Get total count (always included)
     const countResult = await db

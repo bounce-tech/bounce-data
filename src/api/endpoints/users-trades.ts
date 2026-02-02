@@ -71,16 +71,17 @@ const getUsersTrades = async (
       .orderBy(desc(schema.trade.timestamp), schema.trade.id)
       .limit(limit + 1);
 
+    const hasMore = tradesData.length > limit;
+    const items = hasMore ? tradesData.slice(0, limit) : tradesData;
     const pageInfo = calculatePageInfo(
-      tradesData,
-      limit,
+      items,
+      hasMore,
       after,
       before,
       (item) => item.timestamp,
       (item) => item.id
     );
 
-    const items = tradesData.length > limit ? tradesData.slice(0, limit) : tradesData;
 
     // Get total count (always included) - use base where conditions without cursor filtering
     const countResult = await db
