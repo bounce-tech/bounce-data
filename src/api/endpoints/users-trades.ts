@@ -5,6 +5,19 @@ import schema from "ponder:schema";
 import { PaginatedResponse } from "../utils/cursor-pagination";
 import { applyCursorFilter, calculatePageInfo } from "../utils/pagination-helpers";
 
+export interface UserTrade {
+  id: string;
+  txHash: string;
+  timestamp: bigint;
+  isBuy: boolean;
+  baseAssetAmount: bigint;
+  leveragedTokenAmount: bigint;
+  leveragedToken: Address;
+  targetLeverage: bigint;
+  isLong: boolean;
+  asset: string;
+}
+
 const getUsersTrades = async (
   user: Address,
   asset?: string,
@@ -12,7 +25,7 @@ const getUsersTrades = async (
   after?: string,
   before?: string,
   limit: number = 100
-): Promise<PaginatedResponse<any>> => {
+): Promise<PaginatedResponse<UserTrade>> => {
   try {
     // Build base where conditions
     const whereConditions: any[] = [eq(schema.trade.recipient, user as Address)];
