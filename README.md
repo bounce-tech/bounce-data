@@ -399,24 +399,24 @@ GET http://localhost:42069/user-trades?user=0x1234567890123456789012345678901234
   "data": {
     "items": [
       {
-        "id": "0xabc123...",
-        "txHash": "0xdef456...",
-        "timestamp": "1704067200",
-        "isBuy": true,
-        "baseAssetAmount": "1000000000",
-        "leveragedTokenAmount": "5000000000000000000",
-        "leveragedToken": "0x1eefbacfea06d786ce012c6fc861bec6c7a828c1",
-        "targetLeverage": "1000000000000000000",
-        "isLong": true,
-        "asset": "USDC"
-      },
-      {
         "id": "0xghi789...",
         "txHash": "0xjkl012...",
         "timestamp": "1704153600",
         "isBuy": false,
         "baseAssetAmount": "500000000",
         "leveragedTokenAmount": "2500000000000000000",
+        "leveragedToken": "0x1eefbacfea06d786ce012c6fc861bec6c7a828c1",
+        "targetLeverage": "1000000000000000000",
+        "isLong": true,
+        "asset": "USDC"
+      },
+      {
+        "id": "0xabc123...",
+        "txHash": "0xdef456...",
+        "timestamp": "1704067200",
+        "isBuy": true,
+        "baseAssetAmount": "1000000000",
+        "leveragedTokenAmount": "5000000000000000000",
         "leveragedToken": "0x1eefbacfea06d786ce012c6fc861bec6c7a828c1",
         "targetLeverage": "1000000000000000000",
         "isLong": true,
@@ -716,17 +716,6 @@ GET http://localhost:42069/users?after=Mxhc3NDb3JlLTA=&limit=20
   "data": {
     "items": [
       {
-        "address": "0x1234567890123456789012345678901234567890",
-        "tradeCount": 42,
-        "mintVolumeNominal": "10000000000",
-        "redeemVolumeNominal": "8000000000",
-        "totalVolumeNominal": "18000000000",
-        "mintVolumeNotional": "50000000000",
-        "redeemVolumeNotional": "40000000000",
-        "totalVolumeNotional": "90000000000",
-        "lastTradeTimestamp": "1704067200"
-      },
-      {
         "address": "0x9876543210987654321098765432109876543210",
         "tradeCount": 10,
         "mintVolumeNominal": "5000000000",
@@ -736,6 +725,17 @@ GET http://localhost:42069/users?after=Mxhc3NDb3JlLTA=&limit=20
         "redeemVolumeNotional": "15000000000",
         "totalVolumeNotional": "40000000000",
         "lastTradeTimestamp": "1704153600"
+      },
+      {
+        "address": "0x1234567890123456789012345678901234567890",
+        "tradeCount": 42,
+        "mintVolumeNominal": "10000000000",
+        "redeemVolumeNominal": "8000000000",
+        "totalVolumeNominal": "18000000000",
+        "mintVolumeNotional": "50000000000",
+        "redeemVolumeNotional": "40000000000",
+        "totalVolumeNotional": "90000000000",
+        "lastTradeTimestamp": "1704067200"
       }
     ],
     "pageInfo": {
