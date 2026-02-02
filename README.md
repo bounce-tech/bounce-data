@@ -196,7 +196,7 @@ By using this API, you agree to use it in a manner that respects the service and
 | `/traded-lts`     | GET      | Get leveraged tokens a user has traded | `user`              |
 | `/user-trades`    | GET      | Get all trades for a user              | `user`              |
 | `/user-pnl`       | GET      | Get profit and loss for a user         | `user`              |
-| `/total-rebates`  | GET      | Get total rebates claimed by a user    | `user`              |
+| `/total-rebates`  | GET      | Get total rebates earned by a user     | `user`              |
 | `/total-referrals`| GET      | Get total referrals made by a user     | `user`              |
 | `/latest-trades`  | GET      | Get latest 100 trades across all users | None                |
 | `/users`          | GET      | Get all users from the user table      | None                |
