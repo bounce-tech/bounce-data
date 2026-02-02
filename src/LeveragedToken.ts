@@ -5,10 +5,15 @@ import { zeroAddress } from "viem";
 import { ensureUser } from "./utils/ensure-user";
 import { getTargetLeverage } from "./utils/get-target-leverage";
 import { ensureBalance } from "./utils/ensure-balance";
+import { FACTORY_ADDRESS } from "@bouncetech/contracts";
+import addressMatch from "./utils/address-match";
 
 // event Mint(address indexed minter, address indexed to, uint256 baseAmount, uint256 ltAmount);
 ponder.on("LeveragedToken:Mint", async ({ event, context }) => {
   const { minter, to, baseAmount, ltAmount } = event.args;
+
+  // Solving an issue where the factory mints some tokens before emitting the CreateLeveragedToken event
+  if (addressMatch(minter, FACTORY_ADDRESS)) return;
 
   await context.db.insert(schema.trade).values({
     id: crypto.randomUUID(),
@@ -26,8 +31,6 @@ ponder.on("LeveragedToken:Mint", async ({ event, context }) => {
   await ensureUser(context.db, to);
   const targetLeverage = await getTargetLeverage(
     context.db,
-    context.client,
-    context.contracts,
     event.log.address
   );
   const notionalVolume = (baseAmount * targetLeverage) / BigInt(1e18);
@@ -63,8 +66,6 @@ ponder.on("LeveragedToken:Redeem", async ({ event, context }) => {
   await ensureUser(context.db, to);
   const targetLeverage = await getTargetLeverage(
     context.db,
-    context.client,
-    context.contracts,
     event.log.address
   );
   const notionalVolume = (baseAmount * targetLeverage) / BigInt(1e18);
@@ -100,8 +101,6 @@ ponder.on("LeveragedToken:ExecuteRedeem", async ({ event, context }) => {
   await ensureUser(context.db, user);
   const targetLeverage = await getTargetLeverage(
     context.db,
-    context.client,
-    context.contracts,
     event.log.address
   );
   const notionalVolume = (baseAmount * targetLeverage) / BigInt(1e18);

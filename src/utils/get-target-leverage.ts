@@ -3,8 +3,6 @@ import { Address } from "viem";
 
 export async function getTargetLeverage(
     db: any,
-    client: any,
-    contracts: any,
     leveragedTokenAddress: Address
 ): Promise<bigint> {
     // Try to get from database first
@@ -12,12 +10,8 @@ export async function getTargetLeverage(
         address: leveragedTokenAddress,
     });
 
-    if (leveragedToken) return leveragedToken.targetLeverage;
+    if (!leveragedToken) throw new Error("Leveraged token not found");
 
-    // Read from contract if not in database
-    return await client.readContract({
-        abi: contracts.LeveragedToken.abi,
-        address: leveragedTokenAddress,
-        functionName: "targetLeverage",
-    });
+    return leveragedToken.targetLeverage;
+
 }
