@@ -7,6 +7,7 @@ import {
   FACTORY_ADDRESS,
   REFERRALS_ADDRESS,
 } from "@bouncetech/contracts";
+import { BUILD_BLOCK } from "./src/utils/build-block";
 
 const startBlock = 21549398;
 
@@ -16,6 +17,13 @@ export default createConfig({
       id: 999,
       rpc: process.env.HYPER_EVM_RPC_URL,
     },
+  },
+  blocks: {
+    PerBlockUpdate: {
+      chain: "hyperEvm",
+      interval: 1,
+      startBlock: BUILD_BLOCK,
+    }
   },
   contracts: {
     LeveragedToken: {
