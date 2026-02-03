@@ -14,17 +14,17 @@ const publicClient = createPublicClient({
 });
 
 ponder.on("PerBlockUpdate:block", async ({ event, context }) => {
-  const totalAssets = await publicClient.readContract({
+  const data = await publicClient.readContract({
     abi: LEVERAGED_TOKEN_HELPER_ABI,
     address: LEVERAGED_TOKEN_HELPER_ADDRESS,
-    functionName: "getTotalAssets",
+    functionName: "getExchangeRates",
   });
   await Promise.all(
-    totalAssets.map((totalAsset) =>
+    data.map((item) =>
       context.db
-        .update(schema.leveragedToken, { address: totalAsset.leveragedTokenAddress })
+        .update(schema.leveragedToken, { address: item.leveragedTokenAddress })
         .set(() => ({
-          totalAssets: totalAsset.totalAssets,
+          exchangeRate: item.exchangeRate,
         }))
     )
   );

@@ -10,7 +10,7 @@ export const leveragedToken = onchainTable("leveragedToken", (t) => ({
   name: t.text().notNull(),
   decimals: t.integer().notNull(),
   asset: t.text().notNull(),
-  totalAssets: t.bigint().notNull().default(0n),
+  exchangeRate: t.bigint().notNull().default(0n),
 }));
 
 export const trade = onchainTable("trade", (t) => ({
