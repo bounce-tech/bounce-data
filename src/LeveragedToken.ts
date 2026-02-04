@@ -81,6 +81,18 @@ ponder.on("LeveragedToken:Redeem", async ({ event, context }) => {
     }));
 });
 
+// event PrepareRedeem(address indexed sender, uint256 ltAmount);
+ponder.on("LeveragedToken:PrepareRedeem", async ({ event, context }) => {
+  const { sender, ltAmount } = event.args;
+
+  await ensureUser(context.db, sender);
+  await ensureBalance(context.db, sender, event.log.address);
+  await context.db.update(schema.balance, { user: sender, leveragedToken: event.log.address }).set((row) => ({
+    credit: row.credit + ltAmount,
+    total: row.total + ltAmount,
+  }));
+});
+
 // event ExecuteRedeem(address indexed user, uint256 ltAmount, uint256 baseAmount);
 ponder.on("LeveragedToken:ExecuteRedeem", async ({ event, context }) => {
   const { user, ltAmount, baseAmount } = event.args;
@@ -104,6 +116,11 @@ ponder.on("LeveragedToken:ExecuteRedeem", async ({ event, context }) => {
     event.log.address
   );
   const notionalVolume = (baseAmount * targetLeverage) / BigInt(1e18);
+  await ensureBalance(context.db, user, event.log.address);
+  await context.db.update(schema.balance, { user: user, leveragedToken: event.log.address }).set((row) => ({
+    credit: row.credit - ltAmount,
+    total: row.total - ltAmount,
+  }));
   await context.db
     .update(schema.user, { address: user })
     .set((row) => ({
@@ -114,6 +131,17 @@ ponder.on("LeveragedToken:ExecuteRedeem", async ({ event, context }) => {
       totalVolumeNotional: row.totalVolumeNotional + notionalVolume,
       lastTradeTimestamp: event.block.timestamp,
     }));
+});
+
+// event CancelRedeem(address indexed user, uint256 credit);
+ponder.on("LeveragedToken:CancelRedeem", async ({ event, context }) => {
+  const { user, credit } = event.args;
+  await ensureUser(context.db, user);
+  await ensureBalance(context.db, user, event.log.address);
+  await context.db.update(schema.balance, { user: user, leveragedToken: event.log.address }).set((row) => ({
+    credit: row.credit - credit,
+    total: row.total - credit,
+  }));
 });
 
 // event Transfer(address indexed from, address indexed to, uint256 value);
@@ -140,7 +168,8 @@ ponder.on("LeveragedToken:Transfer", async ({ event, context }) => {
         leveragedToken,
       })
       .set((row) => ({
-        amount: row.amount - value,
+        liquid: row.liquid - value,
+        total: row.total - value,
       }));
   }
 
@@ -153,7 +182,8 @@ ponder.on("LeveragedToken:Transfer", async ({ event, context }) => {
         leveragedToken,
       })
       .set((row) => ({
-        amount: row.amount + value,
+        liquid: row.liquid + value,
+        total: row.total + value,
       }));
   }
 });

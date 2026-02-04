@@ -68,7 +68,9 @@ export const balance = onchainTable(
   (t) => ({
     user: t.hex().notNull(),
     leveragedToken: t.hex().notNull(),
-    amount: t.bigint().notNull().default(0n),
+    liquid: t.bigint().notNull().default(0n),
+    credit: t.bigint().notNull().default(0n),
+    total: t.bigint().notNull().default(0n),
   }),
   (table) => ({
     pk: primaryKey({ columns: [table.user, table.leveragedToken] }),
