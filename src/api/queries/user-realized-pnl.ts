@@ -15,7 +15,7 @@ const getUserRealizedPnl = async (user: Address): Promise<bigint | null> => {
     if (!users[0]) return null;
     return users[0].realizedProfit;
   } catch (error) {
-    throw new Error("Failed to fetch balances for user");
+    throw new Error("Failed to fetch realized PnL for user");
   }
 };
 
