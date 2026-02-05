@@ -35,7 +35,7 @@ const getPortfolio = async (user: Address): Promise<Portfolio> => {
     const leveragedTokensWithBalances: LeveragedToken[] = [];
     for (const lt of leveragedTokens) {
       const balance = balances[lt.address];
-      if (!balance) throw new Error(`Balance for leveraged token ${lt.address} not found`);
+      if (!balance) continue;
       const exchangeRate = exchangeRates[lt.address];
       if (!exchangeRate) throw new Error(`Exchange rate for leveraged token ${lt.address} not found`);
       const costNumber = bigIntToNumber(balance.purchaseCost, 6);
