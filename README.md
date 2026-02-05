@@ -131,7 +131,7 @@ Get portfolio data for a user including balances, unrealized profit, and realize
   - `value`: Cumulative PnL value at that timestamp (number, in base asset units)
   
   The chart includes:
-  - Historical points: Cumulative realized PnL from trades (only trades with realized profit are included, ordered by timestamp ascending)
+  - Historical points: Cumulative realized PnL from sell/redeem trades (all trades with realized profit or loss are included, ordered by timestamp ascending)
   - Latest point: Current total PnL (realized + unrealized) with timestamp of now
 
 **Example Request:**
