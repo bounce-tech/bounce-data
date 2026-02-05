@@ -3,12 +3,6 @@ import { db } from "ponder:api";
 import schema from "ponder:schema";
 import { eq } from "drizzle-orm";
 
-
-export interface Balance {
-  totalBalance: bigint;
-  purchaseCost: bigint;
-}
-
 const getUserRealizedPnl = async (user: Address): Promise<bigint | null> => {
   try {
     const users = await db
