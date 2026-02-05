@@ -134,6 +134,7 @@ ponder.on("LeveragedToken:ExecuteRedeem", async ({ event, context }) => {
   if (!balance) throw new Error("Balance not found");
   const balanceBeforeRedeem = balance.totalBalance;
   const balanceAfterRedeem = balanceBeforeRedeem - ltAmount;
+  if (balanceAfterRedeem === 0n) throw new Error("Balance after redeem is 0");
   const purchasePrice = div(balance.purchaseCost, balanceBeforeRedeem);
   const currentPrice = div(baseAmount, ltAmount);
   const priceDifference = currentPrice - purchasePrice;
