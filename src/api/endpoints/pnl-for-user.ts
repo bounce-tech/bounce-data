@@ -3,7 +3,6 @@ import { convertDecimals, mul } from "../utils/scaled-number";
 import bigIntToNumber from "../utils/big-int-to-number";
 import getBalancesForUser from "../queries/balances-for-user";
 import getExchangeRates from "../queries/exchange-rates";
-import { db } from "ponder:api";
 import getUserRealizedPnl from "../queries/user-realized-pnl";
 
 interface LeveragedTokenPnl {
