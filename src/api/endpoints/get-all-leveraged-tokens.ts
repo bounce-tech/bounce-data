@@ -31,7 +31,7 @@ const getAllLeveragedTokens = async (): Promise<LeveragedTokenSummary[]> => {
   try {
     const leveragedTokens = await db
       .select(leveragedTokenSelect)
-      .from(schema.leveragedToken)
+      .from(schema.leveragedToken);
 
     return leveragedTokens.map((lt) => ({
       ...lt,
