@@ -49,6 +49,10 @@ const getAllUsers = async (): Promise<UserSummary[]> => {
       .where(gt(schema.user.tradeCount, 0))
       .groupBy(schema.user.address);
 
+    // Note: PnL calculations can be spoofed via token transfers. If tokens are transferred out,
+    // the balance decreases but purchase cost remains unchanged, making PnL appear worse. If tokens
+    // are transferred in, the balance increases with no associated cost, making PnL appear as pure profit.
+    // This is acceptable for our current use case but integrators should be aware of this limitation.
     const items = users.map((user) => {
       return {
         address: user.address,

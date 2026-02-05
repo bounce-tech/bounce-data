@@ -1,9 +1,12 @@
 import { Address } from "viem";
+import { db } from "ponder:api";
+import schema from "ponder:schema";
+import { eq, isNotNull, asc, and } from "drizzle-orm";
 import getAllLeveragedTokens, { LeveragedTokenSummary } from "./get-all-leveraged-tokens";
 import getBalancesForUser from "../queries/balances-for-user";
 import getExchangeRates from "../queries/exchange-rates";
 import bigIntToNumber from "../utils/big-int-to-number";
-import { convertDecimals, mul } from "../utils/scaled-number";
+import { convertDecimals, mul, stringToBigInt } from "../utils/scaled-number";
 
 interface LeveragedToken extends LeveragedTokenSummary {
   userBalance: bigint;
@@ -25,10 +28,23 @@ interface Portfolio {
 
 const getPortfolio = async (user: Address): Promise<Portfolio> => {
   try {
-    const [balances, exchangeRates, leveragedTokens] = await Promise.all([
+    const [balances, exchangeRates, leveragedTokens, tradesWithProfit] = await Promise.all([
       getBalancesForUser(user),
       getExchangeRates(),
       getAllLeveragedTokens(),
+      db
+        .select({
+          timestamp: schema.trade.timestamp,
+          profitAmount: schema.trade.profitAmount,
+        })
+        .from(schema.trade)
+        .where(
+          and(
+            eq(schema.trade.recipient, user as Address),
+            isNotNull(schema.trade.profitAmount)
+          )
+        )
+        .orderBy(asc(schema.trade.timestamp))
     ]);
     let totalUnrealized = 0;
     let totalRealized = 0;
@@ -52,11 +68,37 @@ const getPortfolio = async (user: Address): Promise<Portfolio> => {
         unrealizedPercent: costNumber === 0 ? 0 : unrealized / costNumber,
       });
     }
+
+    // Calculate cumulative realized PnL
+    let cumulativeRealizedPnl = 0n;
+    const pnlChartBigInt = tradesWithProfit.map((trade) => {
+      if (trade.profitAmount === null) throw new Error("Profit amount is null");
+      const profit = trade.profitAmount;
+      cumulativeRealizedPnl += profit;
+      return {
+        timestamp: Number(trade.timestamp) * 1000,
+        value: cumulativeRealizedPnl,
+      };
+    });
+
+    // Add current unrealized PnL as the latest point
+    if (pnlChartBigInt.length > 0 || totalUnrealized !== 0) {
+      pnlChartBigInt.push({
+        timestamp: Date.now(),
+        value: stringToBigInt((totalRealized + totalUnrealized).toString(), 6),
+      });
+    }
+
+    const pnlChart = pnlChartBigInt.map((chart) => ({
+      timestamp: chart.timestamp,
+      value: bigIntToNumber(chart.value, 6),
+    }));
+
     const portfolio: Portfolio = {
       realizedProfit: totalRealized,
       unrealizedProfit: totalUnrealized,
       leveragedTokens: leveragedTokensWithBalances,
-      pnlChart: [],
+      pnlChart,
     };
     return portfolio;
   } catch (error) {

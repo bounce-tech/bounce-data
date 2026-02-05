@@ -124,9 +124,15 @@ Get portfolio data for a user including balances, unrealized profit, and realize
   - `asset`: Base asset symbol (string)
   - `exchangeRate`: Current exchange rate (as string, serialized from BigInt)
   - `userBalance`: User's balance of this leveraged token (as string, serialized from BigInt)
-  - `unrealizedProfit`: Unrealized profit for this leveraged token (number)
-  - `unrealizedPercent`: Unrealized profit as a percentage (number, e.g., 0.15 = 15%)
-- `pnlChart`: Array of PnL chart data points (currently empty)
+- `unrealizedProfit`: Unrealized profit for this leveraged token (number)
+- `unrealizedPercent`: Unrealized profit as a percentage (number, e.g., 0.15 = 15%)
+- `pnlChart`: Array of PnL chart data points showing the cumulative profit and loss over time. Each data point contains:
+  - `timestamp`: Unix timestamp in milliseconds (number)
+  - `value`: Cumulative PnL value at that timestamp (number, in base asset units)
+  
+  The chart includes:
+  - Historical points: Cumulative realized PnL from sell/redeem trades (all trades with realized profit or loss are included, ordered by timestamp ascending)
+  - Latest point: Current total PnL (realized + unrealized) with timestamp of now
 
 **Example Request:**
 
@@ -158,7 +164,20 @@ GET https://indexing.bounce.tech/portfolio/0x12345678901234567890123456789012345
         "unrealizedPercent": 0.4
       }
     ],
-    "pnlChart": []
+    "pnlChart": [
+      {
+        "timestamp": 1704067200000,
+        "value": 50.0
+      },
+      {
+        "timestamp": 1704153600000,
+        "value": 567.89
+      },
+      {
+        "timestamp": 1704240000000,
+        "value": 1802.45
+      }
+    ]
   },
   "error": null
 }
@@ -494,6 +513,15 @@ Get all users from the user table who have made at least one trade.
   - `totalProfit`: Total profit (realized + unrealized) (number)
 
 Users are ordered by `lastTradeTimestamp` descending (most recently active first).
+
+**Important Disclaimer:**
+
+The `realizedProfit`, `unrealizedProfit`, and `totalProfit` fields can be manipulated through token transfers and should not be relied upon for use cases where accuracy is imperative. 
+
+- **Transfers out**: If a user transfers leveraged tokens out of their wallet, the balance decreases but the purchase cost basis remains unchanged, causing the unrealized PnL to appear artificially negative.
+- **Transfers in**: If a user receives leveraged tokens via transfer (not through a trade), the balance increases but no purchase cost is associated with those tokens, causing the unrealized PnL to appear as pure profit.
+
+These values are calculated based on on-chain balances and trade history, but do not account for external transfers. For our current use case this limitation is acceptable, but integrators should be aware of this behavior and avoid using these fields for critical financial calculations or auditing purposes.
 
 **Example Request:**
 
