@@ -2,7 +2,7 @@ import { db } from "ponder:api";
 import schema from "ponder:schema";
 import { gt } from "drizzle-orm";
 import getExchangeRates from "../queries/exchange-rates";
-import getAllBalances, { Balance } from "../queries/all-balances";
+import getAllBalances from "../queries/all-balances";
 import getUnrealizedPnl from "../utils/unrealized-pnl";
 import { Address } from "viem";
 import bigIntToNumber from "../utils/big-int-to-number";
