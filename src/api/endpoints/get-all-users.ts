@@ -47,6 +47,10 @@ const getAllUsers = async (): Promise<UserSummary[]> => {
     const items = users.map((user) => {
       const balance = balances[user.address];
       if (!balance) throw new Error(`Balance for user ${user.address} not found`);
+      // Note: PnL calculations can be spoofed via token transfers. If tokens are transferred out,
+      // the balance decreases but purchase cost remains unchanged, making PnL appear worse. If tokens
+      // are transferred in, the balance increases with no associated cost, making PnL appear as pure profit.
+      // This is acceptable for our current use case but integrators should be aware of this limitation.
       const unrealizedProfit = getUnrealizedPnl(Object.keys(balance) as Address[], balance, exchangeRates);
       const totalProfit = bigIntToNumber(user.realizedProfit, 6) + unrealizedProfit;
       return ({

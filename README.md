@@ -514,6 +514,15 @@ Get all users from the user table who have made at least one trade.
 
 Users are ordered by `lastTradeTimestamp` descending (most recently active first).
 
+**Important Disclaimer:**
+
+The `realizedProfit`, `unrealizedProfit`, and `totalProfit` fields can be manipulated through token transfers and should not be relied upon for use cases where accuracy is imperative. 
+
+- **Transfers out**: If a user transfers leveraged tokens out of their wallet, the balance decreases but the purchase cost basis remains unchanged, causing the unrealized PnL to appear artificially negative.
+- **Transfers in**: If a user receives leveraged tokens via transfer (not through a trade), the balance increases but no purchase cost is associated with those tokens, causing the unrealized PnL to appear as pure profit.
+
+These values are calculated based on on-chain balances and trade history, but do not account for external transfers. For our current use case this limitation is acceptable, but integrators should be aware of this behavior and avoid using these fields for critical financial calculations or auditing purposes.
+
 **Example Request:**
 
 ```
