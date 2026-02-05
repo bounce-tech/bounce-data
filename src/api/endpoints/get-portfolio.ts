@@ -76,7 +76,7 @@ const getPortfolio = async (user: Address): Promise<Portfolio> => {
       const profit = trade.profitAmount;
       cumulativeRealizedPnl += profit;
       return {
-        timestamp: Number(trade.timestamp),
+        timestamp: Number(trade.timestamp) * 1000,
         value: cumulativeRealizedPnl,
       };
     });
