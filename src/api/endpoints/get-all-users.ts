@@ -1,11 +1,10 @@
 import { db } from "ponder:api";
 import schema from "ponder:schema";
-import { gt } from "drizzle-orm";
-import getExchangeRates from "../queries/exchange-rates";
-import getAllBalances from "../queries/all-balances";
-import getUnrealizedPnl from "../utils/unrealized-pnl";
-import { Address } from "viem";
+import { gt, sql, eq } from "drizzle-orm";
 import bigIntToNumber from "../utils/big-int-to-number";
+
+const BASE_ASSET_DECIMALS = BigInt(1e6);
+const LEVERAGE_DECIMALS = BigInt(1e18);
 
 export interface UserSummary {
   address: string;
@@ -24,36 +23,38 @@ export interface UserSummary {
 
 const getAllUsers = async (): Promise<UserSummary[]> => {
   try {
-    const [users, balances, exchangeRates] = await Promise.all([
-      db
-        .select({
-          address: schema.user.address,
-          tradeCount: schema.user.tradeCount,
-          mintVolumeNominal: schema.user.mintVolumeNominal,
-          redeemVolumeNominal: schema.user.redeemVolumeNominal,
-          totalVolumeNominal: schema.user.totalVolumeNominal,
-          mintVolumeNotional: schema.user.mintVolumeNotional,
-          redeemVolumeNotional: schema.user.redeemVolumeNotional,
-          totalVolumeNotional: schema.user.totalVolumeNotional,
-          lastTradeTimestamp: schema.user.lastTradeTimestamp,
-          realizedProfit: schema.user.realizedProfit,
-        })
-        .from(schema.user)
-        .where(gt(schema.user.tradeCount, 0)),
-      getAllBalances(),
-      getExchangeRates(),
-    ]);
+    const users = await db
+      .select({
+        address: schema.user.address,
+        tradeCount: schema.user.tradeCount,
+        mintVolumeNominal: schema.user.mintVolumeNominal,
+        redeemVolumeNominal: schema.user.redeemVolumeNominal,
+        totalVolumeNominal: schema.user.totalVolumeNominal,
+        mintVolumeNotional: schema.user.mintVolumeNotional,
+        redeemVolumeNotional: schema.user.redeemVolumeNotional,
+        totalVolumeNotional: schema.user.totalVolumeNotional,
+        lastTradeTimestamp: schema.user.lastTradeTimestamp,
+        realizedProfit: schema.user.realizedProfit,
+        unrealizedProfit: sql<bigint>`SUM((${schema.balance.totalBalance} * ${schema.leveragedToken.exchangeRate}) / ${BASE_ASSET_DECIMALS} - ${schema.balance.purchaseCost} * (${LEVERAGE_DECIMALS - BASE_ASSET_DECIMALS}))`
+      })
+      .from(schema.user)
+      .leftJoin(
+        schema.balance,
+        eq(schema.user.address, schema.balance.user)
+      )
+      .leftJoin(
+        schema.leveragedToken,
+        eq(schema.balance.leveragedToken, schema.leveragedToken.address)
+      )
+      .where(gt(schema.user.tradeCount, 0))
+      .groupBy(schema.user.address);
 
+    // Note: PnL calculations can be spoofed via token transfers. If tokens are transferred out,
+    // the balance decreases but purchase cost remains unchanged, making PnL appear worse. If tokens
+    // are transferred in, the balance increases with no associated cost, making PnL appear as pure profit.
+    // This is acceptable for our current use case but integrators should be aware of this limitation.
     const items = users.map((user) => {
-      const balance = balances[user.address];
-      if (!balance) throw new Error(`Balance for user ${user.address} not found`);
-      // Note: PnL calculations can be spoofed via token transfers. If tokens are transferred out,
-      // the balance decreases but purchase cost remains unchanged, making PnL appear worse. If tokens
-      // are transferred in, the balance increases with no associated cost, making PnL appear as pure profit.
-      // This is acceptable for our current use case but integrators should be aware of this limitation.
-      const unrealizedProfit = getUnrealizedPnl(Object.keys(balance) as Address[], balance, exchangeRates);
-      const totalProfit = bigIntToNumber(user.realizedProfit, 6) + unrealizedProfit;
-      return ({
+      return {
         address: user.address,
         tradeCount: user.tradeCount,
         mintVolumeNominal: bigIntToNumber(user.mintVolumeNominal, 6),
@@ -64,11 +65,10 @@ const getAllUsers = async (): Promise<UserSummary[]> => {
         totalVolumeNotional: bigIntToNumber(user.totalVolumeNotional, 6),
         lastTradeTimestamp: bigIntToNumber(user.lastTradeTimestamp, 0),
         realizedProfit: bigIntToNumber(user.realizedProfit, 6),
-        unrealizedProfit,
-        totalProfit,
-      })
+        unrealizedProfit: Number(user.unrealizedProfit || 0),
+        totalProfit: bigIntToNumber(user.realizedProfit, 6) + Number(user.unrealizedProfit || 0),
+      };
     });
-
 
     return items;
   } catch (error) {
