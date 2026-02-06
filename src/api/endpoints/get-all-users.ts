@@ -2,9 +2,11 @@ import { db } from "ponder:api";
 import schema from "ponder:schema";
 import { gt, sql, eq } from "drizzle-orm";
 import bigIntToNumber from "../utils/big-int-to-number";
+import { stringToBigInt } from "../utils/scaled-number";
 
 const BASE_ASSET_DECIMALS = BigInt(1e6);
 const LEVERAGE_DECIMALS = BigInt(1e18);
+const DECIMAL_CONVERSION = LEVERAGE_DECIMALS / BASE_ASSET_DECIMALS;
 
 export interface UserSummary {
   address: string;
@@ -35,7 +37,7 @@ const getAllUsers = async (): Promise<UserSummary[]> => {
         totalVolumeNotional: schema.user.totalVolumeNotional,
         lastTradeTimestamp: schema.user.lastTradeTimestamp,
         realizedProfit: schema.user.realizedProfit,
-        unrealizedProfit: sql<bigint>`SUM((${schema.balance.totalBalance} * ${schema.leveragedToken.exchangeRate}) / ${BASE_ASSET_DECIMALS} - ${schema.balance.purchaseCost} * (${LEVERAGE_DECIMALS - BASE_ASSET_DECIMALS}))`
+        unrealizedProfit: sql<string>`SUM((${schema.balance.totalBalance} * ${schema.leveragedToken.exchangeRate}) / ${LEVERAGE_DECIMALS} - ${schema.balance.purchaseCost} * ${DECIMAL_CONVERSION})`
       })
       .from(schema.user)
       .leftJoin(
@@ -49,11 +51,14 @@ const getAllUsers = async (): Promise<UserSummary[]> => {
       .where(gt(schema.user.tradeCount, 0))
       .groupBy(schema.user.address);
 
+
     // Note: PnL calculations can be spoofed via token transfers. If tokens are transferred out,
     // the balance decreases but purchase cost remains unchanged, making PnL appear worse. If tokens
     // are transferred in, the balance increases with no associated cost, making PnL appear as pure profit.
     // This is acceptable for our current use case but integrators should be aware of this limitation.
     const items = users.map((user) => {
+      const unrealizedProfit = bigIntToNumber(stringToBigInt(user.unrealizedProfit, 0), 18);
+      const realizedProfit = bigIntToNumber(user.realizedProfit, 6);
       return {
         address: user.address,
         tradeCount: user.tradeCount,
@@ -64,9 +69,9 @@ const getAllUsers = async (): Promise<UserSummary[]> => {
         redeemVolumeNotional: bigIntToNumber(user.redeemVolumeNotional, 6),
         totalVolumeNotional: bigIntToNumber(user.totalVolumeNotional, 6),
         lastTradeTimestamp: bigIntToNumber(user.lastTradeTimestamp, 0),
-        realizedProfit: bigIntToNumber(user.realizedProfit, 6),
-        unrealizedProfit: Number(user.unrealizedProfit || 0),
-        totalProfit: bigIntToNumber(user.realizedProfit, 6) + Number(user.unrealizedProfit || 0),
+        realizedProfit,
+        unrealizedProfit,
+        totalProfit: realizedProfit + unrealizedProfit,
       };
     });
 
