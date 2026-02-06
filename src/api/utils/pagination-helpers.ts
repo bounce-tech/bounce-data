@@ -87,7 +87,6 @@ export function applyCompositeCursorFilter<T extends SQL>(
     const wantLessThan = (isAfter && sortDescending) || (!isAfter && !sortDescending);
 
     const sortCompare = wantLessThan ? lt : gt;
-    const sortCompareOpposite = wantLessThan ? gt : lt;
     
     // Composite cursor filter:
     // (sortValue <> cursorSortValue) OR
@@ -111,7 +110,7 @@ export function applyCompositeCursorFilter<T extends SQL>(
     // For "before" pagination, we need to flip the logic
     if (!isAfter) {
         const beforeWhere = or(
-            sortCompareOpposite(sortColumn, sortValue),
+            sortCompare(sortColumn, sortValue),
             and(
                 eq(sortColumn, sortValue),
                 gt(timestampColumn, timestamp)
