@@ -4,6 +4,8 @@ import { Address } from "viem";
 import schema from "ponder:schema";
 import { PaginatedResponse } from "../utils/cursor-pagination";
 import {
+  applyCursorFilter,
+  calculatePageInfo,
   applyCompositeCursorFilter,
   calculateCompositePageInfo,
   SortValueType,
@@ -97,14 +99,17 @@ const getUsersTrades = async (
       asc(schema.trade.id),
     ];
 
-    // Apply composite cursor filter
-    const where = applyCompositeCursorFilter(baseWhere, after, before, {
-      sortColumn: sortConfig.column,
-      sortValueType: sortConfig.valueType,
-      timestampColumn: schema.trade.timestamp,
-      idColumn: schema.trade.id,
-      sortDescending,
-    });
+    // Apply cursor filter: use simple cursor for date sort (timestamp + id),
+    // composite cursor for other sort fields (sortValue + timestamp + id)
+    const where = isDateSort
+      ? applyCursorFilter(baseWhere, after, before, schema.trade.timestamp, schema.trade.id)
+      : applyCompositeCursorFilter(baseWhere, after, before, {
+          sortColumn: sortConfig.column,
+          sortValueType: sortConfig.valueType,
+          timestampColumn: schema.trade.timestamp,
+          idColumn: schema.trade.id,
+          sortDescending,
+        });
 
     // Query with limit + 1 to check if there's a next page
     const tradesData = await db
@@ -134,16 +139,25 @@ const getUsersTrades = async (
     const hasMore = tradesData.length > limit;
     const items = hasMore ? tradesData.slice(0, limit) : tradesData;
     
-    // Calculate page info with composite cursor
-    const pageInfo = calculateCompositePageInfo(
-      items,
-      hasMore,
-      after,
-      before,
-      sortConfig.getValue,
-      (item) => item.timestamp,
-      (item) => item.id
-    );
+    // Calculate page info: simple cursor for date sort, composite for other fields
+    const pageInfo = isDateSort
+      ? calculatePageInfo(
+          items,
+          hasMore,
+          after,
+          before,
+          (item) => item.timestamp,
+          (item) => item.id
+        )
+      : calculateCompositePageInfo(
+          items,
+          hasMore,
+          after,
+          before,
+          sortConfig.getValue,
+          (item) => item.timestamp,
+          (item) => item.id
+        );
 
     // Get total count (always included) - use base where conditions without cursor filtering
     const countResult = await db
