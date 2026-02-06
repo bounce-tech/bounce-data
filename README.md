@@ -225,7 +225,9 @@ This endpoint supports cursor-based pagination for efficient navigation through 
 - Use `after` with `pageInfo.endCursor` from the previous response to get the next page
 - Use `before` with `pageInfo.startCursor` from the previous response to get the previous page
 - The `limit` parameter controls how many items are returned per page (default: 100, maximum: 100)
-- Cursors encode a composite key (sortValue, timestamp, id) to ensure stable pagination regardless of which field you sort by
+- Cursors encode a composite key `(sortValue, timestamp, id)` to ensure stable pagination regardless of which field you sort by.
+- Prior versions of this API encoded cursors as `(timestamp, id)` only. If you have stored cursors from an older version, they may not be compatible with the new format for non `date` sorts and can be rejected or return unexpected results.
+- **Migration guidance:** When upgrading, either (a) discard previously stored cursors and start pagination without a cursor (letting the client store new format cursors), or (b) complete any in flight pagination using the old API version before switching to this one. Do not reuse old `(timestamp, id)` cursors with this API unless explicitly documented by your deployment as supporting backward compatibility.
 
 **Response Data:**
 
