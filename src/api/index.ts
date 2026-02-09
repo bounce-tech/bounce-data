@@ -22,6 +22,7 @@ import {
 } from "./utils/validate";
 import getPortfolio from "./endpoints/get-portfolio";
 import getUserReferrals from "./endpoints/get-user-referrals";
+import isValidCode from "./endpoints/is-valid-code";
 
 const app = new Hono();
 
@@ -116,6 +117,18 @@ app.get("/user-referrals/:user", async (c) => {
     return c.json(formatSuccess(referrals));
   } catch (error) {
     return c.json(formatError("Failed to fetch user referrals"), 500);
+  }
+});
+
+// Validate referral code
+app.get("/is-valid-code/:code", async (c) => {
+  try {
+    const code = c.req.param("code");
+    if (!code) return c.json(formatError("Missing code parameter"), 400);
+    const valid = await isValidCode(code);
+    return c.json(formatSuccess(valid));
+  } catch (error) {
+    return c.json(formatError("Failed to check referral code validity"), 500);
   }
 });
 
