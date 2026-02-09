@@ -21,6 +21,7 @@ import {
   SortOrder,
 } from "./utils/validate";
 import getPortfolio from "./endpoints/get-portfolio";
+import getUserReferrals from "./endpoints/get-user-referrals";
 
 const app = new Hono();
 
@@ -79,13 +80,13 @@ app.get("/user-trades", async (c) => {
     const limit = c.req.query("limit");
     const validationError = validatePaginationParams(after, before, limit);
     if (validationError) return c.json(formatError(validationError), 400);
-    
+
     // Sort params
     const sortBy = c.req.query("sortBy");
     const sortOrder = c.req.query("sortOrder");
     const sortError = validateSortParams(sortBy, sortOrder);
     if (sortError) return c.json(formatError(sortError), 400);
-    
+
     const parsedLimit = limit ? parseInt(limit, 10) : undefined;
     const trades = await getUsersTrades(
       user,
@@ -105,29 +106,16 @@ app.get("/user-trades", async (c) => {
   }
 });
 
-// User total rebates
-app.get("/total-rebates", async (c) => {
+// User referrals
+app.get("/user-referrals/:user", async (c) => {
   try {
-    const user = c.req.query("user");
+    const user = c.req.param("user");
     if (!user) return c.json(formatError("Missing user parameter"), 400);
     if (!isAddress(user)) return c.json(formatError("Invalid user address"), 400);
-    const totalRebates = await getTotalRebatesForUser(user);
-    return c.json(formatSuccess(totalRebates));
+    const referrals = await getUserReferrals(user);
+    return c.json(formatSuccess(referrals));
   } catch (error) {
-    return c.json(formatError("Failed to fetch total rebates"), 500);
-  }
-});
-
-// User's total referrals
-app.get("/total-referrals", async (c) => {
-  try {
-    const user = c.req.query("user");
-    if (!user) return c.json(formatError("Missing user parameter"), 400);
-    if (!isAddress(user)) return c.json(formatError("Invalid user address"), 400);
-    const totalReferrals = await getTotalReferralsForUser(user);
-    return c.json(formatSuccess(totalReferrals));
-  } catch (error) {
-    return c.json(formatError("Failed to fetch total referrals"), 500);
+    return c.json(formatError("Failed to fetch user referrals"), 500);
   }
 });
 
@@ -198,4 +186,32 @@ app.get("/user-pnl", async (c) => {
   }
 });
 
+// User's total referrals (deprecated, use /user-referrals/:user instead, will remove in the future)
+app.get("/total-referrals", async (c) => {
+  try {
+    const user = c.req.query("user");
+    if (!user) return c.json(formatError("Missing user parameter"), 400);
+    if (!isAddress(user)) return c.json(formatError("Invalid user address"), 400);
+    const totalReferrals = await getTotalReferralsForUser(user);
+    return c.json(formatSuccess(totalReferrals));
+  } catch (error) {
+    return c.json(formatError("Failed to fetch total referrals"), 500);
+  }
+});
+
+// User total rebates (deprecated, use /user-referrals/:user instead, will remove in the future)
+app.get("/total-rebates", async (c) => {
+  try {
+    const user = c.req.query("user");
+    if (!user) return c.json(formatError("Missing user parameter"), 400);
+    if (!isAddress(user)) return c.json(formatError("Invalid user address"), 400);
+    const totalRebates = await getTotalRebatesForUser(user);
+    return c.json(formatSuccess(totalRebates));
+  } catch (error) {
+    return c.json(formatError("Failed to fetch total rebates"), 500);
+  }
+});
+
+
 export default app;
+
