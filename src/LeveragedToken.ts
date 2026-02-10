@@ -212,6 +212,7 @@ ponder.on("LeveragedToken:CancelRedeem", async ({ event, context }) => {
     creditBalance: row.creditBalance - credit,
     totalBalance: row.totalBalance - credit,
   }));
+  await context.db.delete(schema.pendingRedemption, { user: user, leveragedToken: event.log.address });
 });
 
 // event Transfer(address indexed from, address indexed to, uint256 value);
