@@ -9,12 +9,14 @@ A REST API for querying data from the Bounce Tech leveraged token protocol on Hy
 This API is publicly available for use by anyone. However, to ensure fair access and maintain service quality for all users, please observe the following guidelines:
 
 **Fair Use Policy:**
+
 - Use the API respectfully and avoid excessive or unnecessary requests
 - Implement appropriate caching mechanisms to reduce redundant API calls
 - Do not attempt to scrape, overload, or abuse the service
 - For high-volume or commercial use cases, please contact us to discuss appropriate arrangements
 
 **Service Availability:**
+
 - The API is provided "as-is" without warranty
 - We reserve the right to monitor usage patterns and implement rate limiting as needed
 - Access may be restricted or suspended for users who violate these terms or engage in abusive behavior
@@ -67,8 +69,8 @@ Get aggregated protocol statistics.
 
 **Response Data:**
 
-- `marginVolume`: Total margin volume (in base asset units)
-- `notionalVolume`: Total notional volume (in base asset units)
+- `marginVolume`: Total margin volume
+- `notionalVolume`: Total notional volume
 - `averageLeverage`: Average leverage across all trades
 - `supportedAssets`: Number of unique market IDs
 - `leveragedTokens`: Total number of leveraged tokens created
@@ -76,7 +78,7 @@ Get aggregated protocol statistics.
 - `totalValueLocked`: Current TVL across all leveraged tokens
 - `openInterest`: Current open interest across all leveraged tokens
 - `totalTrades`: Total number of trades (mints and redeems)
-- `treasuryFees`: Total fees sent to treasury (in base asset units)
+- `treasuryFees`: Total fees sent to treasury
 
 **Example Response:**
 
@@ -111,8 +113,8 @@ Get portfolio data for a user including balances, unrealized profit, and realize
 
 **Response Data:**
 
-- `unrealizedProfit`: Total unrealized profit across all leveraged tokens (in base asset units)
-- `realizedProfit`: Total realized profit across all leveraged tokens (in base asset units)
+- `unrealizedProfit`: Total unrealized profit across all leveraged tokens
+- `realizedProfit`: Total realized profit across all leveraged tokens
 - `leveragedTokens`: Array of leveraged token objects, each containing:
   - `address`: Leveraged token contract address
   - `marketId`: Market identifier (integer)
@@ -121,15 +123,15 @@ Get portfolio data for a user including balances, unrealized profit, and realize
   - `symbol`: ERC-20 symbol (string)
   - `name`: ERC-20 name (string)
   - `decimals`: ERC-20 decimals (integer)
-  - `asset`: Base asset symbol (string)
+  - `asset`: Leveraged token target asset
   - `exchangeRate`: Current exchange rate (as string, serialized from BigInt)
   - `userBalance`: User's balance of this leveraged token (as string, serialized from BigInt)
 - `unrealizedProfit`: Unrealized profit for this leveraged token (number)
 - `unrealizedPercent`: Unrealized profit as a percentage (number, e.g., 0.15 = 15%)
 - `pnlChart`: Array of PnL chart data points showing the cumulative profit and loss over time. Each data point contains:
   - `timestamp`: Unix timestamp in milliseconds (number)
-  - `value`: Cumulative PnL value at that timestamp (number, in base asset units)
-  
+  - `value`: Cumulative PnL value at that timestamp (number)
+
   The chart includes:
   - Historical points: Cumulative realized PnL from sell/redeem trades (all trades with realized profit or loss are included, ordered by timestamp ascending)
   - Latest point: Current total PnL (realized + unrealized) with timestamp of now
@@ -197,7 +199,7 @@ Get all trades for a specific user with optional filtering by asset or leveraged
 **Query Parameters:**
 
 - `user` (required): Ethereum address of the user
-- `asset` (optional): Filter trades by asset (base asset symbol)
+- `asset` (optional): Filter trades by leveraged token symbol
 - `leveragedTokenAddress` (optional): Filter trades by specific leveraged token address
 - `sortBy` (optional): Field to sort by. Values: `date`, `asset`, `activity`, `nomVal`. Default: `date`
 - `sortOrder` (optional): Sort direction. Values: `asc` (ascending) or `desc` (descending). Default: `desc`
@@ -210,7 +212,7 @@ Get all trades for a specific user with optional filtering by asset or leveraged
 **Sorting:**
 
 - `date`: Sort by trade timestamp (default)
-- `asset`: Sort by base asset symbol alphabetically
+- `asset`: Sort by leveraged token symbol
 - `activity`: Sort by trade type (buys/sells)
 - `nomVal`: Sort by nominal value (baseAssetAmount)
 
@@ -232,17 +234,18 @@ This endpoint supports cursor-based pagination for efficient navigation through 
 **Response Data:**
 
 Paginated response containing:
+
 - `items`: Array of trade objects, each containing:
   - `id`: Unique trade identifier
   - `txHash`: Transaction hash of the trade
   - `timestamp`: Block timestamp of the trade (as string, serialized from BigInt)
   - `isBuy`: `true` for mints (buys), `false` for redeems (sells)
-  - `baseAssetAmount`: Amount of base asset (as string, serialized from BigInt)
+  - `baseAssetAmount`: Amount of USDC
   - `leveragedTokenAmount`: Amount of leveraged tokens (as string, serialized from BigInt)
   - `leveragedToken`: Address of the leveraged token
   - `targetLeverage`: Target leverage of the leveraged token (number)
   - `isLong`: Whether the leveraged token is a long position
-  - `asset`: Base asset symbol
+  - `asset`: Leveraged token target asset (e.g. BTC, ETH)
   - `profitAmount`: Profit amount for this trade (number, null if not applicable)
   - `profitPercent`: Profit percentage for this trade (number, null if not applicable)
 - `pageInfo`: Pagination information object containing:
@@ -357,7 +360,135 @@ GET https://indexing.bounce.tech/user-trades?user=0x1234567890123456789012345678
 - `400 Bad Request`: Missing or invalid user address parameter, invalid leveraged token address parameter, invalid limit parameter (must be between 1 and 100), or invalid sort parameters (sortBy must be one of: date, asset, activity, nomVal; sortOrder must be 'asc' or 'desc')
 - `500 Internal Server Error`: Failed to fetch user trades
 
-### Total Rebates
+### User Referrals
+
+Get referral data for a user including their referral code, referrer information, referred user count, and rebates breakdown.
+
+**Endpoint:** `GET https://indexing.bounce.tech/user-referrals/:user`
+
+**Path Parameters:**
+
+- `user` (required): Ethereum address of the user
+
+**Response Data:**
+
+- `address`: User's Ethereum address
+- `referralCode`: The user's own referral code (string or null if not registered)
+- `referrerCode`: The referral code the user signed up with (string or null)
+- `referrerAddress`: The address of the user who referred them (string or null)
+- `isJoined`: Whether the user has joined via a referral (boolean)
+- `referredUserCount`: Number of users this user has referred (integer)
+- `referrerRebates`: Rebates earned as a referrer (number)
+- `refereeRebates`: Rebates earned as a referee (number)
+- `totalRebates`: Total rebates earned (number)
+- `claimedRebates`: Rebates already claimed (number)
+- `claimableRebates`: Rebates available to claim (number)
+
+**Note:** If the user has not been seen on chain, a default response is returned with null/zero values and `isJoined` set to `false`.
+
+**Example Request:**
+
+```
+GET https://indexing.bounce.tech/user-referrals/0x1234567890123456789012345678901234567890
+```
+
+**Example Success Response:**
+
+```json
+{
+  "status": "success",
+  "data": {
+    "address": "0x1234567890123456789012345678901234567890",
+    "referralCode": "ABC123",
+    "referrerCode": "XYZ789",
+    "referrerAddress": "0x9876543210987654321098765432109876543210",
+    "isJoined": true,
+    "referredUserCount": 5,
+    "referrerRebates": 2.5,
+    "refereeRebates": 1.08269,
+    "totalRebates": 3.58269,
+    "claimedRebates": 1.0,
+    "claimableRebates": 2.58269
+  },
+  "error": null
+}
+```
+
+**Example Response (user not found):**
+
+```json
+{
+  "status": "success",
+  "data": {
+    "address": "0x1234567890123456789012345678901234567890",
+    "referralCode": null,
+    "referrerCode": null,
+    "referrerAddress": null,
+    "isJoined": false,
+    "referredUserCount": 0,
+    "referrerRebates": 0,
+    "refereeRebates": 0,
+    "totalRebates": 0,
+    "claimedRebates": 0,
+    "claimableRebates": 0
+  },
+  "error": null
+}
+```
+
+**Error Responses:**
+
+- `400 Bad Request`: Missing or invalid user address parameter
+- `500 Internal Server Error`: Failed to fetch user referrals
+
+### Validate Referral Code
+
+Check whether a referral code exists and is valid.
+
+**Endpoint:** `GET https://indexing.bounce.tech/is-valid-code/:code`
+
+**Path Parameters:**
+
+- `code` (required): The referral code to validate
+
+**Response Data:**
+
+- Boolean: `true` if the referral code exists, `false` otherwise
+
+**Example Request:**
+
+```
+GET https://indexing.bounce.tech/is-valid-code/ABC123
+```
+
+**Example Success Response (valid code):**
+
+```json
+{
+  "status": "success",
+  "data": true,
+  "error": null
+}
+```
+
+**Example Success Response (invalid code):**
+
+```json
+{
+  "status": "success",
+  "data": false,
+  "error": null
+}
+```
+
+**Error Responses:**
+
+- `400 Bad Request`: Missing code parameter
+- `500 Internal Server Error`: Failed to check referral code validity
+
+### Total Rebates (Deprecated)
+
+> **Deprecated:** Use [`/user-referrals/:user`](#user-referrals) instead. This endpoint will be removed in a future release.
 
 Get the total rebates earned by a user.
 
@@ -402,7 +533,9 @@ GET https://indexing.bounce.tech/total-rebates?user=0x12345678901234567890123456
 - `400 Bad Request`: Missing or invalid user address parameter
 - `500 Internal Server Error`: Failed to fetch total rebates
 
-### Total Referrals
+### Total Referrals (Deprecated)
+
+> **Deprecated:** Use [`/user-referrals/:user`](#user-referrals) instead. This endpoint will be removed in a future release.
 
 Get the number of referrals a user has made.
 
@@ -462,14 +595,14 @@ Get the latest trades across all users.
   - `txHash`: Transaction hash of the trade
   - `timestamp`: Block timestamp of the trade (as string, serialized from BigInt)
   - `isBuy`: `true` for mints (buys), `false` for redeems (sells)
-  - `baseAssetAmount`: Amount of base asset (as string, serialized from BigInt)
+  - `baseAssetAmount`: Amount of USDC
   - `leveragedTokenAmount`: Amount of leveraged tokens (as string, serialized from BigInt)
   - `leveragedToken`: Address of the leveraged token
   - `sender`: Address initiating the trade
   - `recipient`: Address receiving the tokens
   - `targetLeverage`: Target leverage of the leveraged token (as string, serialized from BigInt)
   - `isLong`: Whether the leveraged token is a long position
-  - `asset`: Base asset symbol
+  - `asset`: Leveraged token target asset (e.g. BTC, ETH)
 
 Trades are ordered by timestamp descending (newest first).
 
@@ -550,7 +683,7 @@ Users are ordered by `lastTradeTimestamp` descending (most recently active first
 
 **Important Disclaimer:**
 
-The `realizedProfit`, `unrealizedProfit`, and `totalProfit` fields can be manipulated through token transfers and should not be relied upon for use cases where accuracy is imperative. 
+The `realizedProfit`, `unrealizedProfit`, and `totalProfit` fields can be manipulated through token transfers and should not be relied upon for use cases where accuracy is imperative.
 
 - **Transfers out**: If a user transfers leveraged tokens out of their wallet, the balance decreases but the purchase cost basis remains unchanged, causing the unrealized PnL to appear artificially negative.
 - **Transfers in**: If a user receives leveraged tokens via transfer (not through a trade), the balance increases but no purchase cost is associated with those tokens, causing the unrealized PnL to appear as pure profit.
@@ -675,7 +808,7 @@ Get all leveraged tokens from the database.
   - `symbol`: ERC-20 symbol (string)
   - `name`: ERC-20 name (string)
   - `decimals`: ERC-20 decimals (integer)
-  - `asset`: Base asset symbol (string)
+  - `asset`: Leveraged token target asset (e.g. BTC, ETH)
   - `exchangeRate`: Current exchange rate (as string, serialized from BigInt)
 
 **Example Request:**
@@ -741,7 +874,7 @@ Get data for a single leveraged token by address.
   - `symbol`: ERC-20 symbol (string)
   - `name`: ERC-20 name (string)
   - `decimals`: ERC-20 decimals (integer)
-  - `asset`: Base asset symbol (string)
+  - `asset`: Leveraged token target asset (e.g. BTC, ETH)
   - `exchangeRate`: Current exchange rate (as string, serialized from BigInt)
 
 **Example Request:**
