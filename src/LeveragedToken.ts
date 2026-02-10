@@ -126,7 +126,6 @@ ponder.on("LeveragedToken:PrepareRedeem", async ({ event, context }) => {
     totalBalance: row.totalBalance + ltAmount,
   }));
   await context.db.insert(schema.pendingRedemption).values({
-    id: crypto.randomUUID(),
     user: sender,
     leveragedToken,
     txHash: event.transaction?.hash ?? "",
