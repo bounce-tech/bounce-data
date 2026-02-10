@@ -505,6 +505,92 @@ GET https://indexing.bounce.tech/latest-trades
 
 - None (always returns success with an array, which may be empty if there are no trades)
 
+### Trade by Transaction Hash
+
+Look up a specific trade by its originating transaction hash. This is useful for confirming that a trade has been indexed after submitting a transaction. If the trade has not been indexed yet, the endpoint returns `null` in the data field.
+
+This endpoint provides a guaranteed exact match for the trade corresponding to the given transaction hash, eliminating the need to poll recent trades and perform fuzzy matching on the UI.
+
+Polling this endpoint is also faster than polling the latest trades endpoint, since it performs a single lookup by transaction hash rather than fetching and filtering a list.
+
+**Prepare Redeem Support:** This endpoint also works for prepare redeems. If you submit a prepare redeem transaction and poll with that transaction hash, the endpoint will keep returning `null` until the corresponding execute redeem has completed on chain. Once the execute redeem is processed, it will return the final trade data for the redeem, including exact PnL amounts after all fees.
+
+**Endpoint:** `GET https://indexing.bounce.tech/trade/:txHash`
+
+**Path Parameters:**
+
+- `txHash` (required): The transaction hash to look up (must be a valid hex string)
+
+**Response Data:**
+
+Returns `null` if the trade has not been indexed yet, or a trade object containing:
+- `id`: Unique trade identifier
+- `isBuy`: `true` for mints (buys), `false` for redeems (sells)
+- `leveragedToken`: Address of the leveraged token
+- `timestamp`: Block timestamp of the trade (as string, serialized from BigInt)
+- `sender`: Address initiating the trade
+- `recipient`: Address receiving the tokens
+- `baseAssetAmount`: Amount of base asset (as string, serialized from BigInt)
+- `leveragedTokenAmount`: Amount of leveraged tokens (as string, serialized from BigInt)
+- `profitAmount`: Profit amount for this trade (as string, serialized from BigInt; null for buys)
+- `profitPercent`: Profit percentage for this trade (as string, serialized from BigInt; null for buys)
+- `originTxHash`: The originating transaction hash used to look up this trade
+- `txHash`: The transaction hash of the trade itself (same as `originTxHash` for direct mints and redeems; for prepare redeems, this will be the execute redeem transaction hash)
+
+**Example Request:**
+
+```
+GET https://indexing.bounce.tech/trade/0xabc123def456789012345678901234567890123456789012345678901234abcd
+```
+
+**Example Success Response (trade found):**
+
+```json
+{
+  "status": "success",
+  "data": {
+    "id": "550e8400-e29b-41d4-a716-446655440000",
+    "isBuy": false,
+    "leveragedToken": "0x1eefbacfea06d786ce012c6fc861bec6c7a828c1",
+    "timestamp": "1704153600",
+    "sender": "0x1234567890123456789012345678901234567890",
+    "recipient": "0x1234567890123456789012345678901234567890",
+    "baseAssetAmount": "500000000",
+    "leveragedTokenAmount": "2500000000000000000",
+    "profitAmount": "50000000",
+    "profitPercent": "100000000000000000",
+    "originTxHash": "0xabc123def456789012345678901234567890123456789012345678901234abcd",
+    "txHash": "0xabc123def456789012345678901234567890123456789012345678901234abcd"
+  },
+  "error": null
+}
+```
+
+**Example Success Response (trade not yet indexed):**
+
+```json
+{
+  "status": "success",
+  "data": null,
+  "error": null
+}
+```
+
+**Example Error Response:**
+
+```json
+{
+  "status": "error",
+  "data": null,
+  "error": "Invalid txHash"
+}
+```
+
+**Error Responses:**
+
+- `400 Bad Request`: Missing txHash parameter or invalid hex string
+- `500 Internal Server Error`: Failed to fetch trade
+
 ### All Users
 
 Get all users from the user table who have made at least one trade.
