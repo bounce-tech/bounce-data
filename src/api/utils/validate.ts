@@ -1,4 +1,4 @@
-import { MAX_QUERY_SIZE, MAX_PAGE } from "./config";
+import { MAX_QUERY_SIZE } from "./config";
 
 export function validateOffsetPaginationParams(
     page: string | undefined,
@@ -8,7 +8,6 @@ export function validateOffsetPaginationParams(
         const parsedPage = Number(page);
         if (!Number.isInteger(parsedPage)) return "Page must be a valid integer";
         if (parsedPage < 1) return "Page must be at least 1";
-        if (parsedPage > MAX_PAGE) return `Page cannot exceed ${MAX_PAGE}`;
     }
     if (limit !== undefined) {
         const parsedLimit = Number(limit);
