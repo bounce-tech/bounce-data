@@ -1,18 +1,17 @@
 import { db } from "ponder:api";
 import schema from "ponder:schema";
 import { eq } from "drizzle-orm";
-import { Address } from "viem";
 import { LeveragedTokenSummary, leveragedTokenSelect } from "./get-all-leveraged-tokens";
 import bigIntToNumber from "../utils/big-int-to-number";
 
 const getLeveragedToken = async (
-  leveragedTokenAddress: Address
+  symbol: string
 ): Promise<LeveragedTokenSummary | null> => {
   try {
     const result = await db
       .select(leveragedTokenSelect)
       .from(schema.leveragedToken)
-      .where(eq(schema.leveragedToken.address, leveragedTokenAddress))
+      .where(eq(schema.leveragedToken.symbol, symbol))
       .limit(1);
 
     const lt = result[0];

@@ -172,16 +172,15 @@ app.get("/leveraged-tokens", async (c) => {
 });
 
 // Single leveraged token endpoint
-app.get("/leveraged-tokens/:leveragedTokenAddress", async (c) => {
+app.get("/leveraged-tokens/:symbol", async (c) => {
   try {
-    const leveragedTokenAddress = c.req.param("leveragedTokenAddress");
-    if (!leveragedTokenAddress) return c.json(formatError("Missing leveraged token address parameter"), 400);
-    if (!isAddress(leveragedTokenAddress)) return c.json(formatError("Invalid leveraged token address"), 400);
-    const leveragedToken = await getLeveragedToken(leveragedTokenAddress as Address);
+    const symbol = c.req.param("symbol");
+    if (!symbol) return c.json(formatError("Missing symbol parameter"), 400);
+    const leveragedToken = await getLeveragedToken(symbol);
     if (!leveragedToken) return c.json(formatError("Leveraged token not found"), 404);
     return c.json(formatSuccess(leveragedToken));
   } catch (error) {
-    return c.json(formatError("Failed to fetch leveraged token"), 500);
+    return c.json(formatError("Failed to fetch leveraged token by symbol"), 500);
   }
 });
 
