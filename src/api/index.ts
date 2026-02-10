@@ -15,7 +15,7 @@ import getReferrers from "./endpoints/get-referrers";
 import getAllLeveragedTokens from "./endpoints/get-all-leveraged-tokens";
 import getLeveragedToken from "./endpoints/get-leveraged-token";
 import {
-  validatePaginationParams,
+  validateOffsetPaginationParams,
   validateSortParams,
   SortField,
   SortOrder,
@@ -76,11 +76,10 @@ app.get("/user-trades", async (c) => {
     const asset = c.req.query("asset");
     const lt = c.req.query("leveragedTokenAddress");
     if (lt && !isAddress(lt)) return c.json(formatError("Invalid leveragedTokenAddress"), 400);
-    const after = c.req.query("after");
-    const before = c.req.query("before");
+    const page = c.req.query("page");
     const limit = c.req.query("limit");
-    const validationError = validatePaginationParams(after, before, limit);
-    if (validationError) return c.json(formatError(validationError), 400);
+    const paginationError = validateOffsetPaginationParams(page, limit);
+    if (paginationError) return c.json(formatError(paginationError), 400);
 
     // Sort params
     const sortBy = c.req.query("sortBy");
@@ -88,13 +87,13 @@ app.get("/user-trades", async (c) => {
     const sortError = validateSortParams(sortBy, sortOrder);
     if (sortError) return c.json(formatError(sortError), 400);
 
+    const parsedPage = page ? parseInt(page, 10) : undefined;
     const parsedLimit = limit ? parseInt(limit, 10) : undefined;
     const trades = await getUsersTrades(
       user,
       asset,
       lt as Address | undefined,
-      after,
-      before,
+      parsedPage ?? 1,
       parsedLimit ?? 100,
       {
         sortBy: sortBy as SortField | undefined,

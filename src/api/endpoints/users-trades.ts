@@ -2,12 +2,6 @@ import { db } from "ponder:api";
 import { eq, and, desc, asc, sql } from "drizzle-orm";
 import { Address } from "viem";
 import schema from "ponder:schema";
-import { PaginatedResponse } from "../utils/cursor-pagination";
-import {
-  applyCompositeCursorFilter,
-  calculateCompositePageInfo,
-  SortValueType,
-} from "../utils/pagination-helpers";
 import bigIntToNumber from "../utils/big-int-to-number";
 import { SortField, SortOrder } from "../utils/validate";
 
@@ -31,21 +25,21 @@ export interface UserTradesSortOptions {
   sortOrder?: SortOrder;
 }
 
-interface SortConfig {
-  column: any;
-  valueType: SortValueType;
-  getValue: (item: any) => bigint | string | boolean;
+export interface PaginatedTradesResponse {
+  items: UserTrade[];
+  totalCount: number;
+  page: number;
+  totalPages: number;
 }
 
 const getUsersTrades = async (
   user: Address,
   asset?: string,
   leveragedTokenAddress?: Address,
-  after?: string,
-  before?: string,
+  page: number = 1,
   limit: number = 100,
   sortOptions: UserTradesSortOptions = {}
-): Promise<PaginatedResponse<UserTrade>> => {
+): Promise<PaginatedTradesResponse> => {
   try {
     const { sortBy = "date", sortOrder = "desc" } = sortOptions;
     const sortDescending = sortOrder === "desc";
@@ -62,52 +56,37 @@ const getUsersTrades = async (
     }
     const baseWhere = whereConditions.length > 1 ? and(...whereConditions) : whereConditions[0];
 
-    // Configure sort field
-    const sortConfigs: Record<SortField, SortConfig> = {
-      date: {
-        column: schema.trade.timestamp,
-        valueType: "bigint",
-        getValue: (item) => item.timestamp,
-      },
-      asset: {
-        column: schema.leveragedToken.asset,
-        valueType: "string",
-        getValue: (item) => item.asset,
-      },
-      activity: {
-        column: schema.trade.isBuy,
-        valueType: "boolean",
-        getValue: (item) => item.isBuy,
-      },
-      nomVal: {
-        column: schema.trade.baseAssetAmount,
-        valueType: "bigint",
-        getValue: (item) => item.baseAssetAmount,
-      },
+    // Configure sort columns
+    const sortColumnMap: Record<SortField, any> = {
+      date: schema.trade.timestamp,
+      asset: schema.leveragedToken.asset,
+      activity: schema.trade.isBuy,
+      nomVal: schema.trade.baseAssetAmount,
     };
 
-    const sortConfig = sortConfigs[sortBy];
     const orderFn = sortDescending ? desc : asc;
-
-    // Order by: primary sort field, then timestamp (desc, as tiebreaker for non-date sorts), then id (asc)
     const isDateSort = sortBy === "date";
     const orderByClause = [
-      orderFn(sortConfig.column),
+      orderFn(sortColumnMap[sortBy]),
       ...(isDateSort ? [] : [desc(schema.trade.timestamp)]),
       asc(schema.trade.id),
     ];
 
-    // Apply cursor filter using composite cursor for all sorts:
-    // sortValue (primary), then timestamp, then id
-    const where = applyCompositeCursorFilter(baseWhere, after, before, {
-      sortColumn: sortConfig.column,
-      sortValueType: sortConfig.valueType,
-      timestampColumn: schema.trade.timestamp,
-      idColumn: schema.trade.id,
-      sortDescending,
-    });
+    const offset = (page - 1) * limit;
 
-    // Query with limit + 1 to check if there's a next page
+    // Get total count
+    const countResult = await db
+      .select({ count: sql<number>`count(*)` })
+      .from(schema.trade)
+      .innerJoin(
+        schema.leveragedToken,
+        eq(schema.trade.leveragedToken, schema.leveragedToken.address)
+      )
+      .where(baseWhere);
+    const totalCount = Number(countResult[0]?.count || 0);
+    const totalPages = Math.ceil(totalCount / limit) || 1;
+
+    // Query with offset and limit
     const tradesData = await db
       .select({
         id: schema.trade.id,
@@ -128,44 +107,21 @@ const getUsersTrades = async (
         schema.leveragedToken,
         eq(schema.trade.leveragedToken, schema.leveragedToken.address)
       )
-      .where(where)
+      .where(baseWhere)
       .orderBy(...orderByClause)
-      .limit(limit + 1);
-
-    const hasMore = tradesData.length > limit;
-    const items = hasMore ? tradesData.slice(0, limit) : tradesData;
-    
-    // Calculate page info using composite cursors for all sort types
-    const pageInfo = calculateCompositePageInfo(
-      items,
-      hasMore,
-      after,
-      before,
-      sortConfig.getValue,
-      (item) => item.timestamp,
-      (item) => item.id
-    );
-
-    // Get total count (always included) - use base where conditions without cursor filtering
-    const countResult = await db
-      .select({ count: sql<number>`count(*)` })
-      .from(schema.trade)
-      .innerJoin(
-        schema.leveragedToken,
-        eq(schema.trade.leveragedToken, schema.leveragedToken.address)
-      )
-      .where(baseWhere);
-    const totalCount = Number(countResult[0]?.count || 0);
+      .limit(limit)
+      .offset(offset);
 
     return {
-      items: items.map((item) => ({
+      items: tradesData.map((item) => ({
         ...item,
         targetLeverage: bigIntToNumber(item.targetLeverage, 18),
-        profitAmount: item.profitAmount ? bigIntToNumber(item.profitAmount, 6) : null,
-        profitPercent: item.profitPercent ? bigIntToNumber(item.profitPercent, 18) : null,
+        profitAmount: item.profitAmount == null ? null : bigIntToNumber(item.profitAmount, 6),
+        profitPercent: item.profitPercent == null ? null : bigIntToNumber(item.profitPercent, 18),
       })),
-      pageInfo,
       totalCount,
+      page,
+      totalPages,
     };
   } catch (error) {
     if (error instanceof Error) {

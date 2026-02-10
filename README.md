@@ -203,8 +203,7 @@ Get all trades for a specific user with optional filtering by asset or leveraged
 - `leveragedTokenAddress` (optional): Filter trades by specific leveraged token address
 - `sortBy` (optional): Field to sort by. Values: `date`, `asset`, `activity`, `nomVal`. Default: `date`
 - `sortOrder` (optional): Sort direction. Values: `asc` (ascending) or `desc` (descending). Default: `desc`
-- `after` (optional): Cursor for pagination (use `pageInfo.endCursor` from previous response)
-- `before` (optional): Cursor for backward pagination (use `pageInfo.startCursor` from previous response)
+- `page` (optional): Page number, starting from 1 (default: 1)
 - `limit` (optional): Number of items per page (default: 100, max: 100)
 
 **Note:** You can combine `asset` and `leveragedTokenAddress` filters. If both are provided, trades must match both conditions.
@@ -218,18 +217,15 @@ Get all trades for a specific user with optional filtering by asset or leveraged
 
 Default behavior (no sort parameters): returns trades ordered by date descending (most recent first).
 
-When `sortBy = date`, trades are primarily ordered by timestamp (with ID as a secondary tie-breaker). When sorting by `asset`, `activity`, or `nomVal`, results are ordered by that field first, then by timestamp as a secondary sort key, and ID as a tertiary sort key for stable pagination.
+When `sortBy = date`, trades are primarily ordered by timestamp (with ID as a secondary tie-breaker). When sorting by `asset`, `activity`, or `nomVal`, results are ordered by that field first, then by timestamp as a secondary sort key, and ID as a tertiary sort key for stable ordering.
 
-**Cursor Pagination:**
+**Pagination:**
 
-This endpoint supports cursor-based pagination for efficient navigation through large result sets. Cursor pagination works with all sort fields.
+This endpoint uses offset pagination. Use the `page` and `limit` parameters to navigate through results.
 
-- Use `after` with `pageInfo.endCursor` from the previous response to get the next page
-- Use `before` with `pageInfo.startCursor` from the previous response to get the previous page
-- The `limit` parameter controls how many items are returned per page (default: 100, maximum: 100)
-- Cursors encode a composite key `(sortValue, timestamp, id)` to ensure stable pagination regardless of which field you sort by.
-- Prior versions of this API encoded cursors as `(timestamp, id)` only. If you have stored cursors from an older version, they may not be compatible with the new format for non `date` sorts and can be rejected or return unexpected results.
-- **Migration guidance:** When upgrading, either (a) discard previously stored cursors and start pagination without a cursor (letting the client store new format cursors), or (b) complete any in flight pagination using the old API version before switching to this one. Do not reuse old `(timestamp, id)` cursors with this API unless explicitly documented by your deployment as supporting backward compatibility.
+- `page` controls which page of results to return (default: 1)
+- `limit` controls how many items are returned per page (default: 100, maximum: 100)
+- The response includes `totalCount` and `totalPages` so you can calculate how many pages are available
 
 **Response Data:**
 
@@ -248,12 +244,9 @@ Paginated response containing:
   - `asset`: Leveraged token target asset (e.g. BTC, ETH)
   - `profitAmount`: Profit amount for this trade (number, null if not applicable)
   - `profitPercent`: Profit percentage for this trade (number, null if not applicable)
-- `pageInfo`: Pagination information object containing:
-  - `startCursor`: Cursor for the first item in the current page (use with `before` for previous page)
-  - `endCursor`: Cursor for the last item in the current page (use with `after` for next page)
-  - `hasPreviousPage`: Whether there are more records before this page
-  - `hasNextPage`: Whether there are more records after this page
-- `totalCount`: Total number of records matching the query (always included)
+- `totalCount`: Total number of records matching the query
+- `page`: Current page number
+- `totalPages`: Total number of pages available
 
 **Example Request (First Page):**
 
@@ -267,10 +260,10 @@ GET https://indexing.bounce.tech/user-trades?user=0x1234567890123456789012345678
 GET https://indexing.bounce.tech/user-trades?user=0x1234567890123456789012345678901234567890&asset=USDC&limit=20
 ```
 
-**Example Request (Next Page):**
+**Example Request (Page 2):**
 
 ```
-GET https://indexing.bounce.tech/user-trades?user=0x1234567890123456789012345678901234567890&after=Mxhc3NDb3JlLTA=&limit=10
+GET https://indexing.bounce.tech/user-trades?user=0x1234567890123456789012345678901234567890&page=2&limit=10
 ```
 
 **Example Request with Both Filters:**
@@ -289,12 +282,6 @@ GET https://indexing.bounce.tech/user-trades?user=0x1234567890123456789012345678
 
 ```
 GET https://indexing.bounce.tech/user-trades?user=0x1234567890123456789012345678901234567890&sortBy=nomVal&sortOrder=desc
-```
-
-**Example Request Sorted by Asset with Filter:**
-
-```
-GET https://indexing.bounce.tech/user-trades?user=0x1234567890123456789012345678901234567890&asset=USDC&sortBy=activity&sortOrder=desc
 ```
 
 **Example Success Response:**
@@ -333,13 +320,9 @@ GET https://indexing.bounce.tech/user-trades?user=0x1234567890123456789012345678
         "profitPercent": null
       }
     ],
-    "pageInfo": {
-      "startCursor": "Mxhc3NDb3JlLTA=",
-      "endCursor": "MxhcdoP9CVBhY",
-      "hasPreviousPage": false,
-      "hasNextPage": true
-    },
-    "totalCount": 42
+    "totalCount": 42,
+    "page": 1,
+    "totalPages": 5
   },
   "error": null
 }
@@ -357,7 +340,7 @@ GET https://indexing.bounce.tech/user-trades?user=0x1234567890123456789012345678
 
 **Error Responses:**
 
-- `400 Bad Request`: Missing or invalid user address parameter, invalid leveraged token address parameter, invalid limit parameter (must be between 1 and 100), or invalid sort parameters (sortBy must be one of: date, asset, activity, nomVal; sortOrder must be 'asc' or 'desc')
+- `400 Bad Request`: Missing or invalid user address parameter, invalid leveraged token address parameter, invalid page parameter (must be at least 1), invalid limit parameter (must be between 1 and 100), or invalid sort parameters (sortBy must be one of: date, asset, activity, nomVal; sortOrder must be 'asc' or 'desc')
 - `500 Internal Server Error`: Failed to fetch user trades
 
 ### User Referrals
