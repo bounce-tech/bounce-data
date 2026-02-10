@@ -215,7 +215,7 @@ Get all trades for a specific user with optional filtering by asset or leveraged
 
 Default behavior (no sort parameters): returns trades ordered by date descending (most recent first).
 
-When `sortBy = date`, trades are primarily ordered by timestamp (with ID as a secondary tie breaker). When sorting by `asset`, `activity`, or `nomVal`, results are ordered by that field first, then by timestamp as a secondary sort key, and ID as a tertiary sort key for stable ordering.
+When `sortBy = date`, trades are primarily ordered by timestamp (with ID as a secondary tie-breaker). When sorting by `asset`, `activity`, or `nomVal`, results are ordered by that field first, then by timestamp as a secondary sort key, and ID as a tertiary sort key for stable ordering.
 
 **Pagination:**
 

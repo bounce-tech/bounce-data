@@ -116,8 +116,8 @@ const getUsersTrades = async (
       items: tradesData.map((item) => ({
         ...item,
         targetLeverage: bigIntToNumber(item.targetLeverage, 18),
-        profitAmount: item.profitAmount ? bigIntToNumber(item.profitAmount, 6) : null,
-        profitPercent: item.profitPercent ? bigIntToNumber(item.profitPercent, 18) : null,
+        profitAmount: item.profitAmount == null ? null : bigIntToNumber(item.profitAmount, 6),
+        profitPercent: item.profitPercent == null ? null : bigIntToNumber(item.profitPercent, 18),
       })),
       totalCount,
       page,
