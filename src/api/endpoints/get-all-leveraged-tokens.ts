@@ -6,7 +6,6 @@ import { convertDecimals, mul } from "../utils/scaled-number";
 
 export interface LeveragedTokenSummary {
   address: Address;
-  marketId: number;
   targetLeverage: number;
   isLong: boolean;
   symbol: string;
@@ -21,7 +20,6 @@ export interface LeveragedTokenSummary {
 
 export const leveragedTokenSelect = {
   address: schema.leveragedToken.address,
-  marketId: schema.leveragedToken.marketId,
   targetLeverage: schema.leveragedToken.targetLeverage,
   isLong: schema.leveragedToken.isLong,
   symbol: schema.leveragedToken.symbol,

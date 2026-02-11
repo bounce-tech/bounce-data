@@ -117,7 +117,6 @@ Get portfolio data for a user including balances, unrealized profit, and realize
 - `realizedProfit`: Total realized profit across all leveraged tokens
 - `leveragedTokens`: Array of leveraged token objects, each containing:
   - `address`: Leveraged token contract address
-  - `marketId`: Market identifier (integer)
   - `targetLeverage`: Target leverage amount (number)
   - `isLong`: Whether the token is a long position (boolean)
   - `symbol`: ERC-20 symbol (string)
@@ -154,7 +153,6 @@ GET https://indexing.bounce.tech/portfolio/0x12345678901234567890123456789012345
     "leveragedTokens": [
       {
         "address": "0x1eefbacfea06d786ce012c6fc861bec6c7a828c1",
-        "marketId": 1,
         "targetLeverage": 3.0,
         "isLong": true,
         "symbol": "3L-USDC",
@@ -873,7 +871,6 @@ Get all leveraged tokens from the database.
 
 - Array of leveraged token objects, each containing:
   - `address`: Leveraged token contract address (primary key)
-  - `marketId`: Market identifier (integer)
   - `targetLeverage`: Target leverage amount (number)
   - `isLong`: Whether the token is a long position (boolean)
   - `symbol`: ERC-20 symbol (string)
@@ -899,7 +896,6 @@ GET https://indexing.bounce.tech/leveraged-tokens
   "data": [
     {
       "address": "0x1eefbacfea06d786ce012c6fc861bec6c7a828c1",
-      "marketId": 0,
       "targetLeverage": 2,
       "isLong": true,
       "symbol": "BTC2L",
@@ -913,7 +909,6 @@ GET https://indexing.bounce.tech/leveraged-tokens
     },
     {
       "address": "0x22a7a4a38a97ca44473548036f22a7bcd2c25457",
-      "marketId": 1,
       "targetLeverage": 3,
       "isLong": false,
       "symbol": "ETH3S",
@@ -948,7 +943,6 @@ Get data for a single leveraged token by symbol.
 
 - Leveraged token object containing:
   - `address`: Leveraged token contract address (primary key)
-  - `marketId`: Market identifier (integer)
   - `targetLeverage`: Target leverage amount (number)
   - `isLong`: Whether the token is a long position (boolean)
   - `symbol`: ERC-20 symbol (string)
@@ -973,7 +967,6 @@ GET https://indexing.bounce.tech/leveraged-tokens/3L-USDC
   "status": "success",
   "data": {
     "address": "0x1eefbacfea06d786ce012c6fc861bec6c7a828c1",
-    "marketId": 3,
     "targetLeverage": 5,
     "isLong": true,
     "symbol": "HYPE5L",
