@@ -213,6 +213,8 @@ ponder.on("LeveragedToken:Transfer", async ({ event, context }) => {
     txHash: event.transaction?.hash ?? "",
   });
 
+  if (addressMatch(to, FACTORY_ADDRESS)) return;
+
   // Updating total supply
   if (from === zeroAddress) {
     await context.db.update(schema.leveragedToken, { address: leveragedToken }).set((row) => ({
