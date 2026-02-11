@@ -11,6 +11,7 @@ export const leveragedToken = onchainTable("leveragedToken", (t) => ({
   decimals: t.integer().notNull(),
   targetAsset: t.text().notNull(),
   exchangeRate: t.bigint().notNull().default(0n),
+  totalSupply: t.bigint().notNull().default(0n),
 }));
 
 export const pendingRedemption = onchainTable(
