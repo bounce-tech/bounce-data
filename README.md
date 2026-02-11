@@ -111,7 +111,6 @@ Get the current global storage configuration (owner, pause state, fee parameters
 
 **Response Data:**
 
-- `id`: Row identifier (e.g. `"global"`)
 - `owner`: Global storage contract owner address
 - `allMintsPaused`: Whether all mints are paused (boolean)
 - `minTransactionSize`: Minimum transaction size (string, BigInt)
@@ -135,7 +134,6 @@ GET https://indexing.bounce.tech/global-storage
 {
   "status": "success",
   "data": {
-    "id": "global",
     "owner": "0x1234567890123456789012345678901234567890",
     "allMintsPaused": false,
     "minTransactionSize": "1000000",
