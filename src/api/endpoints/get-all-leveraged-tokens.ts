@@ -6,13 +6,13 @@ import { convertDecimals, mul } from "../utils/scaled-number";
 
 export interface LeveragedTokenSummary {
   address: Address;
-  marketId: number;
   targetLeverage: number;
   isLong: boolean;
   symbol: string;
   name: string;
   decimals: number;
   targetAsset: string;
+  mintPaused: boolean;
   exchangeRate: bigint;
   totalSupply: bigint;
   totalAssets: bigint;
@@ -20,13 +20,13 @@ export interface LeveragedTokenSummary {
 
 export const leveragedTokenSelect = {
   address: schema.leveragedToken.address,
-  marketId: schema.leveragedToken.marketId,
   targetLeverage: schema.leveragedToken.targetLeverage,
   isLong: schema.leveragedToken.isLong,
   symbol: schema.leveragedToken.symbol,
   name: schema.leveragedToken.name,
   decimals: schema.leveragedToken.decimals,
   targetAsset: schema.leveragedToken.targetAsset,
+  mintPaused: schema.leveragedToken.mintPaused,
   exchangeRate: schema.leveragedToken.exchangeRate,
   totalSupply: schema.leveragedToken.totalSupply,
 };

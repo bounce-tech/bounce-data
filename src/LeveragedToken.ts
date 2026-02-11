@@ -285,3 +285,12 @@ ponder.on("LeveragedToken:SendFeesToTreasury", async ({ event, context }) => {
     destination: "treasury",
   });
 });
+
+// event SetMintPaused(bool mintPaused);
+ponder.on("LeveragedToken:SetMintPaused", async ({ event, context }) => {
+  const { mintPaused } = event.args;
+  const leveragedToken = event.log.address;
+  await context.db.update(schema.leveragedToken, { address: leveragedToken }).set({
+    mintPaused,
+  });
+});

@@ -117,13 +117,13 @@ Get portfolio data for a user including balances, unrealized profit, and realize
 - `realizedProfit`: Total realized profit across all leveraged tokens
 - `leveragedTokens`: Array of leveraged token objects, each containing:
   - `address`: Leveraged token contract address
-  - `marketId`: Market identifier (integer)
   - `targetLeverage`: Target leverage amount (number)
   - `isLong`: Whether the token is a long position (boolean)
   - `symbol`: ERC-20 symbol (string)
   - `name`: ERC-20 name (string)
   - `decimals`: ERC-20 decimals (integer)
   - `targetAsset`: Leveraged token target asset
+  - `mintPaused`: Whether minting is currently paused for this leveraged token (boolean)
   - `exchangeRate`: Current exchange rate (as string, serialized from BigInt)
   - `userBalance`: User's balance of this leveraged token (as string, serialized from BigInt)
 - `unrealizedProfit`: Unrealized profit for this leveraged token (number)
@@ -153,13 +153,13 @@ GET https://indexing.bounce.tech/portfolio/0x12345678901234567890123456789012345
     "leveragedTokens": [
       {
         "address": "0x1eefbacfea06d786ce012c6fc861bec6c7a828c1",
-        "marketId": 1,
         "targetLeverage": 3.0,
         "isLong": true,
         "symbol": "3L-USDC",
         "name": "3x Long USDC",
         "decimals": 18,
         "targetAsset": "USDC",
+        "mintPaused": false,
         "exchangeRate": "1050000000000000000",
         "userBalance": "5000000000000000000",
         "unrealizedProfit": 200.0,
@@ -871,13 +871,13 @@ Get all leveraged tokens from the database.
 
 - Array of leveraged token objects, each containing:
   - `address`: Leveraged token contract address (primary key)
-  - `marketId`: Market identifier (integer)
   - `targetLeverage`: Target leverage amount (number)
   - `isLong`: Whether the token is a long position (boolean)
   - `symbol`: ERC-20 symbol (string)
   - `name`: ERC-20 name (string)
   - `decimals`: ERC-20 decimals (integer)
   - `asset`: Leveraged token target asset (e.g. BTC, ETH)
+  - `mintPaused`: Whether minting is currently paused for this leveraged token (boolean)
   - `exchangeRate`: Current exchange rate (as string, serialized from BigInt)
   - `totalSupply`: Total supply of leveraged tokens in existence (as string, serialized from BigInt)
   - `totalAssets`: Total USDC value of the leveraged token (as string, 6 decimals)
@@ -896,26 +896,26 @@ GET https://indexing.bounce.tech/leveraged-tokens
   "data": [
     {
       "address": "0x1eefbacfea06d786ce012c6fc861bec6c7a828c1",
-      "marketId": 0,
       "targetLeverage": 2,
       "isLong": true,
       "symbol": "BTC2L",
       "name": "BTC 2x Long",
       "decimals": 18,
       "asset": "BTC",
+      "mintPaused": false,
       "exchangeRate": "1050000000000000000",
       "totalSupply": "1000000000000000000000",
       "totalAssets": "1000000000"
     },
     {
       "address": "0x22a7a4a38a97ca44473548036f22a7bcd2c25457",
-      "marketId": 1,
       "targetLeverage": 3,
       "isLong": false,
       "symbol": "ETH3S",
       "name": "ETH 3x Short",
       "decimals": 18,
       "asset": "ETH",
+      "mintPaused": true,
       "exchangeRate": "980000000000000000",
       "totalSupply": "500000000000000000000",
       "totalAssets": "500000000"
@@ -943,13 +943,13 @@ Get data for a single leveraged token by symbol.
 
 - Leveraged token object containing:
   - `address`: Leveraged token contract address (primary key)
-  - `marketId`: Market identifier (integer)
   - `targetLeverage`: Target leverage amount (number)
   - `isLong`: Whether the token is a long position (boolean)
   - `symbol`: ERC-20 symbol (string)
   - `name`: ERC-20 name (string)
   - `decimals`: ERC-20 decimals (integer)
   - `asset`: Leveraged token target asset (e.g. BTC, ETH)
+  - `mintPaused`: Whether minting is currently paused for this leveraged token (boolean)
   - `exchangeRate`: Current exchange rate (as string, serialized from BigInt)
   - `totalSupply`: Total supply of leveraged tokens in existence (as string, serialized from BigInt)
   - `totalAssets`: Total USDC value of the leveraged token (as string, 6 decimals)
@@ -967,13 +967,13 @@ GET https://indexing.bounce.tech/leveraged-tokens/3L-USDC
   "status": "success",
   "data": {
     "address": "0x1eefbacfea06d786ce012c6fc861bec6c7a828c1",
-    "marketId": 3,
     "targetLeverage": 5,
     "isLong": true,
     "symbol": "HYPE5L",
     "name": "HYPE 5x Long",
     "decimals": 18,
     "asset": "HYPE",
+    "mintPaused": false,
     "exchangeRate": "1050000000000000000",
     "totalSupply": "1000000000000000000000",
     "totalAssets": "1000000000"
