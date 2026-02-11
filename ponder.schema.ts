@@ -1,4 +1,5 @@
 import { onchainTable, relations, primaryKey } from "ponder";
+import { zeroAddress } from "viem";
 
 export const leveragedToken = onchainTable("leveragedToken", (t) => ({
   address: t.hex().primaryKey(),
