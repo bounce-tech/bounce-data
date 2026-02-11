@@ -3,6 +3,7 @@ import schema from "ponder:schema";
 import { eq } from "drizzle-orm";
 import { LeveragedTokenSummary, leveragedTokenSelect } from "./get-all-leveraged-tokens";
 import bigIntToNumber from "../utils/big-int-to-number";
+import { convertDecimals, mul } from "../utils/scaled-number";
 
 const getLeveragedToken = async (
   symbol: string
@@ -19,6 +20,7 @@ const getLeveragedToken = async (
     return {
       ...lt,
       targetLeverage: bigIntToNumber(lt.targetLeverage, 18),
+      totalAssets: convertDecimals(mul(lt.totalSupply, lt.exchangeRate), 18, 6),
     };
   } catch (error) {
     throw new Error("Failed to fetch leveraged token");
