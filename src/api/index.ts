@@ -1,6 +1,6 @@
 import { Hono } from "hono";
 import { cors } from "hono/cors";
-import { Address, isAddress } from "viem";
+import { Address, isAddress, isHex } from "viem";
 import getStats from "./endpoints/stats";
 import formatError from "./utils/format-error";
 import formatSuccess from "./utils/format-success";
@@ -23,6 +23,7 @@ import {
 import getPortfolio from "./endpoints/get-portfolio";
 import getUserReferrals from "./endpoints/get-user-referrals";
 import isValidCode from "./endpoints/is-valid-code";
+import getTrade from "./endpoints/get-trade";
 
 const app = new Hono();
 
@@ -138,6 +139,19 @@ app.get("/latest-trades", async (c) => {
     return c.json(formatSuccess(trades));
   } catch (error) {
     return c.json(formatError("Failed to fetch latest trades"), 500);
+  }
+});
+
+app.get("/trade/:txHash", async (c) => {
+  try {
+    const txHash = c.req.param("txHash");
+    if (!txHash) return c.json(formatError("Missing txHash parameter"), 400);
+    if (!isHex(txHash)) return c.json(formatError("Invalid txHash"), 400);
+    const trade = await getTrade(txHash);
+    if (!trade) return c.json(formatSuccess(null));
+    return c.json(formatSuccess(trade));
+  } catch (error) {
+    return c.json(formatError("Failed to fetch trade"), 500);
   }
 });
 

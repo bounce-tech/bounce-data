@@ -17,6 +17,7 @@ ponder.on("LeveragedToken:Mint", async ({ event, context }) => {
   // Solving an issue where the factory mints some tokens before emitting the CreateLeveragedToken event
   if (addressMatch(minter, FACTORY_ADDRESS)) return;
 
+  const txHash = event.transaction?.hash ?? "";
   await context.db.insert(schema.trade).values({
     id: crypto.randomUUID(),
     isBuy: true,
@@ -26,7 +27,8 @@ ponder.on("LeveragedToken:Mint", async ({ event, context }) => {
     recipient: to,
     baseAssetAmount: baseAmount,
     leveragedTokenAmount: ltAmount,
-    txHash: event.transaction?.hash ?? "",
+    originTxHash: txHash,
+    txHash: txHash,
   });
 
   // Update user stats
@@ -76,6 +78,7 @@ ponder.on("LeveragedToken:Redeem", async ({ event, context }) => {
   });
 
   // Insert trade
+  const txHash = event.transaction?.hash ?? "";
   await context.db.insert(schema.trade).values({
     id: crypto.randomUUID(),
     isBuy: false,
@@ -87,7 +90,8 @@ ponder.on("LeveragedToken:Redeem", async ({ event, context }) => {
     leveragedTokenAmount: ltAmount,
     profitAmount: profit,
     profitPercent: purchasePrice === 0n ? 0n : div(priceDifference, purchasePrice),
-    txHash: event.transaction?.hash ?? "",
+    originTxHash: txHash,
+    txHash: txHash,
   });
 
   // Update user stats
@@ -113,13 +117,19 @@ ponder.on("LeveragedToken:Redeem", async ({ event, context }) => {
 // event PrepareRedeem(address indexed sender, uint256 ltAmount);
 ponder.on("LeveragedToken:PrepareRedeem", async ({ event, context }) => {
   const { sender, ltAmount } = event.args;
+  const leveragedToken = event.log.address;
 
   await ensureUser(context.db, sender);
-  await ensureBalance(context.db, sender, event.log.address);
-  await context.db.update(schema.balance, { user: sender, leveragedToken: event.log.address }).set((row) => ({
+  await ensureBalance(context.db, sender, leveragedToken);
+  await context.db.update(schema.balance, { user: sender, leveragedToken }).set((row) => ({
     creditBalance: row.creditBalance + ltAmount,
     totalBalance: row.totalBalance + ltAmount,
   }));
+  await context.db.insert(schema.pendingRedemption).values({
+    user: sender,
+    leveragedToken,
+    txHash: event.transaction?.hash ?? "",
+  });
 });
 
 // event ExecuteRedeem(address indexed user, uint256 ltAmount, uint256 baseAmount);
@@ -146,6 +156,11 @@ ponder.on("LeveragedToken:ExecuteRedeem", async ({ event, context }) => {
     })
   });
 
+  // Pending redemption
+  const pendingRedemption = await context.db.find(schema.pendingRedemption, { user, leveragedToken });
+  if (!pendingRedemption) throw new Error("Pending redemption not found");
+  await context.db.delete(schema.pendingRedemption, { user: pendingRedemption.user, leveragedToken: pendingRedemption.leveragedToken });
+
   // Insert trade
   await context.db.insert(schema.trade).values({
     id: crypto.randomUUID(),
@@ -158,6 +173,7 @@ ponder.on("LeveragedToken:ExecuteRedeem", async ({ event, context }) => {
     leveragedTokenAmount: ltAmount,
     profitAmount: profit,
     profitPercent: purchasePrice === 0n ? 0n : div(priceDifference, purchasePrice),
+    originTxHash: pendingRedemption.txHash,
     txHash: event.transaction?.hash ?? "",
   });
 
@@ -195,6 +211,7 @@ ponder.on("LeveragedToken:CancelRedeem", async ({ event, context }) => {
     creditBalance: row.creditBalance - credit,
     totalBalance: row.totalBalance - credit,
   }));
+  await context.db.delete(schema.pendingRedemption, { user: user, leveragedToken: event.log.address });
 });
 
 // event Transfer(address indexed from, address indexed to, uint256 value);
@@ -212,6 +229,8 @@ ponder.on("LeveragedToken:Transfer", async ({ event, context }) => {
     amount: value,
     txHash: event.transaction?.hash ?? "",
   });
+
+  if (addressMatch(to, FACTORY_ADDRESS)) return;
 
   // Updating total supply
   if (from === zeroAddress) {

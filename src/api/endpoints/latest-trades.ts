@@ -18,7 +18,7 @@ const getLatestTrades = async () => {
                 recipient: schema.trade.recipient,
                 targetLeverage: schema.leveragedToken.targetLeverage,
                 isLong: schema.leveragedToken.isLong,
-                asset: schema.leveragedToken.asset,
+                targetAsset: schema.leveragedToken.targetAsset,
             })
             .from(schema.trade)
             .innerJoin(

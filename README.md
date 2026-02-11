@@ -123,7 +123,7 @@ Get portfolio data for a user including balances, unrealized profit, and realize
   - `symbol`: ERC-20 symbol (string)
   - `name`: ERC-20 name (string)
   - `decimals`: ERC-20 decimals (integer)
-  - `asset`: Leveraged token target asset
+  - `targetAsset`: Leveraged token target asset
   - `exchangeRate`: Current exchange rate (as string, serialized from BigInt)
   - `userBalance`: User's balance of this leveraged token (as string, serialized from BigInt)
 - `unrealizedProfit`: Unrealized profit for this leveraged token (number)
@@ -159,7 +159,7 @@ GET https://indexing.bounce.tech/portfolio/0x12345678901234567890123456789012345
         "symbol": "3L-USDC",
         "name": "3x Long USDC",
         "decimals": 18,
-        "asset": "USDC",
+        "targetAsset": "USDC",
         "exchangeRate": "1050000000000000000",
         "userBalance": "5000000000000000000",
         "unrealizedProfit": 200.0,
@@ -241,7 +241,7 @@ Paginated response containing:
   - `leveragedToken`: Address of the leveraged token
   - `targetLeverage`: Target leverage of the leveraged token (number)
   - `isLong`: Whether the leveraged token is a long position
-  - `asset`: Leveraged token target asset (e.g. BTC, ETH)
+  - `targetAsset`: Leveraged token target asset (e.g. BTC, ETH)
   - `profitAmount`: Profit amount for this trade (number, null if not applicable)
   - `profitPercent`: Profit percentage for this trade (number, null if not applicable)
 - `totalCount`: Total number of records matching the query
@@ -301,7 +301,7 @@ GET https://indexing.bounce.tech/user-trades?user=0x1234567890123456789012345678
         "leveragedToken": "0x1eefbacfea06d786ce012c6fc861bec6c7a828c1",
         "targetLeverage": 3.0,
         "isLong": true,
-        "asset": "USDC",
+        "targetAsset": "USDC",
         "profitAmount": 50.0,
         "profitPercent": 0.1
       },
@@ -315,7 +315,7 @@ GET https://indexing.bounce.tech/user-trades?user=0x1234567890123456789012345678
         "leveragedToken": "0x1eefbacfea06d786ce012c6fc861bec6c7a828c1",
         "targetLeverage": 3.0,
         "isLong": true,
-        "asset": "USDC",
+        "targetAsset": "USDC",
         "profitAmount": null,
         "profitPercent": null
       }
@@ -637,6 +637,92 @@ GET https://indexing.bounce.tech/latest-trades
 **Error Responses:**
 
 - None (always returns success with an array, which may be empty if there are no trades)
+
+### Trade by Transaction Hash
+
+Look up a specific trade by its originating transaction hash. This is useful for confirming that a trade has been indexed after submitting a transaction. If the trade has not been indexed yet, the endpoint returns `null` in the data field.
+
+This endpoint provides a guaranteed exact match for the trade corresponding to the given transaction hash, eliminating the need to poll recent trades and perform fuzzy matching on the UI.
+
+Polling this endpoint is also faster than polling the latest trades endpoint, since it performs a single lookup by transaction hash rather than fetching and filtering a list.
+
+**Prepare Redeem Support:** This endpoint also works for prepare redeems. If you submit a prepare redeem transaction and poll with that transaction hash, the endpoint will keep returning `null` until the corresponding execute redeem has completed on chain. Once the execute redeem is processed, it will return the final trade data for the redeem, including exact PnL amounts after all fees.
+
+**Endpoint:** `GET https://indexing.bounce.tech/trade/:txHash`
+
+**Path Parameters:**
+
+- `txHash` (required): The transaction hash to look up (must be a valid hex string)
+
+**Response Data:**
+
+Returns `null` if the trade has not been indexed yet, or a trade object containing:
+- `id`: Unique trade identifier
+- `isBuy`: `true` for mints (buys), `false` for redeems (sells)
+- `leveragedToken`: Address of the leveraged token
+- `timestamp`: Block timestamp of the trade (as string, serialized from BigInt)
+- `sender`: Address initiating the trade
+- `recipient`: Address receiving the tokens
+- `baseAssetAmount`: Amount of base asset (as string, serialized from BigInt)
+- `leveragedTokenAmount`: Amount of leveraged tokens (as string, serialized from BigInt)
+- `profitAmount`: Profit amount for this trade (as string, serialized from BigInt; null for buys)
+- `profitPercent`: Profit percentage for this trade (as string, serialized from BigInt; null for buys)
+- `originTxHash`: The originating transaction hash used to look up this trade
+- `txHash`: The transaction hash of the trade itself (same as `originTxHash` for direct mints and redeems; for prepare redeems, this will be the execute redeem transaction hash)
+
+**Example Request:**
+
+```
+GET https://indexing.bounce.tech/trade/0xabc123def456789012345678901234567890123456789012345678901234abcd
+```
+
+**Example Success Response (trade found):**
+
+```json
+{
+  "status": "success",
+  "data": {
+    "id": "550e8400-e29b-41d4-a716-446655440000",
+    "isBuy": false,
+    "leveragedToken": "0x1eefbacfea06d786ce012c6fc861bec6c7a828c1",
+    "timestamp": "1704153600",
+    "sender": "0x1234567890123456789012345678901234567890",
+    "recipient": "0x1234567890123456789012345678901234567890",
+    "baseAssetAmount": "500000000",
+    "leveragedTokenAmount": "2500000000000000000",
+    "profitAmount": "50000000",
+    "profitPercent": "100000000000000000",
+    "originTxHash": "0xabc123def456789012345678901234567890123456789012345678901234abcd",
+    "txHash": "0xabc123def456789012345678901234567890123456789012345678901234abcd"
+  },
+  "error": null
+}
+```
+
+**Example Success Response (trade not yet indexed):**
+
+```json
+{
+  "status": "success",
+  "data": null,
+  "error": null
+}
+```
+
+**Example Error Response:**
+
+```json
+{
+  "status": "error",
+  "data": null,
+  "error": "Invalid txHash"
+}
+```
+
+**Error Responses:**
+
+- `400 Bad Request`: Missing txHash parameter or invalid hex string
+- `500 Internal Server Error`: Failed to fetch trade
 
 ### All Users
 

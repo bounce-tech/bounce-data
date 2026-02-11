@@ -15,7 +15,7 @@ export interface UserTrade {
   leveragedToken: Address;
   targetLeverage: number;
   isLong: boolean;
-  asset: string;
+  targetAsset: string;
   profitAmount: number | null;
   profitPercent: number | null;
 }
@@ -47,10 +47,10 @@ const getUsersTrades = async (
     // Build base where conditions
     const whereConditions: any[] = [eq(schema.trade.recipient, user as Address)];
     if (asset && leveragedTokenAddress) {
-      whereConditions.push(eq(schema.leveragedToken.asset, asset));
+      whereConditions.push(eq(schema.leveragedToken.targetAsset, asset));
       whereConditions.push(eq(schema.leveragedToken.address, leveragedTokenAddress));
     } else if (asset) {
-      whereConditions.push(eq(schema.leveragedToken.asset, asset));
+      whereConditions.push(eq(schema.leveragedToken.targetAsset, asset));
     } else if (leveragedTokenAddress) {
       whereConditions.push(eq(schema.leveragedToken.address, leveragedTokenAddress));
     }
@@ -59,7 +59,7 @@ const getUsersTrades = async (
     // Configure sort columns
     const sortColumnMap: Record<SortField, any> = {
       date: schema.trade.timestamp,
-      asset: schema.leveragedToken.asset,
+      asset: schema.leveragedToken.targetAsset,
       activity: schema.trade.isBuy,
       nomVal: schema.trade.baseAssetAmount,
     };
@@ -98,7 +98,7 @@ const getUsersTrades = async (
         leveragedToken: schema.trade.leveragedToken,
         targetLeverage: schema.leveragedToken.targetLeverage,
         isLong: schema.leveragedToken.isLong,
-        asset: schema.leveragedToken.asset,
+        targetAsset: schema.leveragedToken.targetAsset,
         profitAmount: schema.trade.profitAmount,
         profitPercent: schema.trade.profitPercent,
       })
