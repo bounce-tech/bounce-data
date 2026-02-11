@@ -124,6 +124,7 @@ Get portfolio data for a user including balances, unrealized profit, and realize
   - `name`: ERC-20 name (string)
   - `decimals`: ERC-20 decimals (integer)
   - `targetAsset`: Leveraged token target asset
+  - `mintPaused`: Whether minting is currently paused for this leveraged token (boolean)
   - `exchangeRate`: Current exchange rate (as string, serialized from BigInt)
   - `userBalance`: User's balance of this leveraged token (as string, serialized from BigInt)
 - `unrealizedProfit`: Unrealized profit for this leveraged token (number)
@@ -160,6 +161,7 @@ GET https://indexing.bounce.tech/portfolio/0x12345678901234567890123456789012345
         "name": "3x Long USDC",
         "decimals": 18,
         "targetAsset": "USDC",
+        "mintPaused": false,
         "exchangeRate": "1050000000000000000",
         "userBalance": "5000000000000000000",
         "unrealizedProfit": 200.0,
@@ -878,6 +880,7 @@ Get all leveraged tokens from the database.
   - `name`: ERC-20 name (string)
   - `decimals`: ERC-20 decimals (integer)
   - `asset`: Leveraged token target asset (e.g. BTC, ETH)
+  - `mintPaused`: Whether minting is currently paused for this leveraged token (boolean)
   - `exchangeRate`: Current exchange rate (as string, serialized from BigInt)
   - `totalSupply`: Total supply of leveraged tokens in existence (as string, serialized from BigInt)
   - `totalAssets`: Total USDC value of the leveraged token (as string, 6 decimals)
@@ -903,6 +906,7 @@ GET https://indexing.bounce.tech/leveraged-tokens
       "name": "BTC 2x Long",
       "decimals": 18,
       "asset": "BTC",
+      "mintPaused": false,
       "exchangeRate": "1050000000000000000",
       "totalSupply": "1000000000000000000000",
       "totalAssets": "1000000000"
@@ -916,6 +920,7 @@ GET https://indexing.bounce.tech/leveraged-tokens
       "name": "ETH 3x Short",
       "decimals": 18,
       "asset": "ETH",
+      "mintPaused": true,
       "exchangeRate": "980000000000000000",
       "totalSupply": "500000000000000000000",
       "totalAssets": "500000000"
@@ -950,6 +955,7 @@ Get data for a single leveraged token by symbol.
   - `name`: ERC-20 name (string)
   - `decimals`: ERC-20 decimals (integer)
   - `asset`: Leveraged token target asset (e.g. BTC, ETH)
+  - `mintPaused`: Whether minting is currently paused for this leveraged token (boolean)
   - `exchangeRate`: Current exchange rate (as string, serialized from BigInt)
   - `totalSupply`: Total supply of leveraged tokens in existence (as string, serialized from BigInt)
   - `totalAssets`: Total USDC value of the leveraged token (as string, 6 decimals)
@@ -974,6 +980,7 @@ GET https://indexing.bounce.tech/leveraged-tokens/3L-USDC
     "name": "HYPE 5x Long",
     "decimals": 18,
     "asset": "HYPE",
+    "mintPaused": false,
     "exchangeRate": "1050000000000000000",
     "totalSupply": "1000000000000000000000",
     "totalAssets": "1000000000"
