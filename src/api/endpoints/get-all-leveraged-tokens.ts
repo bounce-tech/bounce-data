@@ -2,6 +2,7 @@ import { db } from "ponder:api";
 import schema from "ponder:schema";
 import { Address } from "viem";
 import bigIntToNumber from "../utils/big-int-to-number";
+import { convertDecimals, mul } from "../utils/scaled-number";
 
 export interface LeveragedTokenSummary {
   address: Address;
@@ -14,6 +15,7 @@ export interface LeveragedTokenSummary {
   asset: string;
   exchangeRate: bigint;
   totalSupply: bigint;
+  totalAssets: bigint;
 }
 
 export const leveragedTokenSelect = {
@@ -38,6 +40,7 @@ const getAllLeveragedTokens = async (): Promise<LeveragedTokenSummary[]> => {
     return leveragedTokens.map((lt) => ({
       ...lt,
       targetLeverage: bigIntToNumber(lt.targetLeverage, 18),
+      totalAssets: convertDecimals(mul(lt.totalSupply, lt.exchangeRate), 18, 6),
     }));
   } catch (error) {
     if (error instanceof Error) {

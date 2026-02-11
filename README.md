@@ -794,6 +794,7 @@ Get all leveraged tokens from the database.
   - `asset`: Leveraged token target asset (e.g. BTC, ETH)
   - `exchangeRate`: Current exchange rate (as string, serialized from BigInt)
   - `totalSupply`: Total supply of leveraged tokens in existence (as string, serialized from BigInt)
+  - `totalAssets`: Total USDC value of the leveraged token (as string, 6 decimals)
 
 **Example Request:**
 
@@ -817,7 +818,8 @@ GET https://indexing.bounce.tech/leveraged-tokens
       "decimals": 18,
       "asset": "BTC",
       "exchangeRate": "1050000000000000000",
-      "totalSupply": "1000000000000000000000"
+      "totalSupply": "1000000000000000000000",
+      "totalAssets": "1000000000"
     },
     {
       "address": "0x22a7a4a38a97ca44473548036f22a7bcd2c25457",
@@ -829,7 +831,8 @@ GET https://indexing.bounce.tech/leveraged-tokens
       "decimals": 18,
       "asset": "ETH",
       "exchangeRate": "980000000000000000",
-      "totalSupply": "500000000000000000000"
+      "totalSupply": "500000000000000000000",
+      "totalAssets": "500000000"
     }
   ],
   "error": null
@@ -863,6 +866,7 @@ Get data for a single leveraged token by symbol.
   - `asset`: Leveraged token target asset (e.g. BTC, ETH)
   - `exchangeRate`: Current exchange rate (as string, serialized from BigInt)
   - `totalSupply`: Total supply of leveraged tokens in existence (as string, serialized from BigInt)
+  - `totalAssets`: Total USDC value of the leveraged token (as string, 6 decimals)
 
 **Example Request:**
 
@@ -885,7 +889,8 @@ GET https://indexing.bounce.tech/leveraged-tokens/3L-USDC
     "decimals": 18,
     "asset": "HYPE",
     "exchangeRate": "1050000000000000000",
-    "totalSupply": "1000000000000000000000"
+    "totalSupply": "1000000000000000000000",
+    "totalAssets": "1000000000"
   },
   "error": null
 }
