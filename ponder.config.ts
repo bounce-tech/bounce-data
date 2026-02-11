@@ -2,9 +2,11 @@ import { createConfig } from "ponder";
 
 import {
   FACTORY_ABI,
+  GLOBAL_STORAGE_ABI,
   LEVERAGED_TOKEN_ABI,
   REFERRALS_ABI,
   FACTORY_ADDRESS,
+  GLOBAL_STORAGE_ADDRESS,
   REFERRALS_ADDRESS,
 } from "@bouncetech/contracts";
 import { BUILD_BLOCK } from "./src/utils/build-block";
@@ -67,6 +69,12 @@ export default createConfig({
       chain: "hyperEvm",
       abi: REFERRALS_ABI,
       address: REFERRALS_ADDRESS,
+      startBlock,
+    },
+    GlobalStorage: {
+      chain: "hyperEvm",
+      abi: GLOBAL_STORAGE_ABI,
+      address: GLOBAL_STORAGE_ADDRESS,
       startBlock,
     },
   },

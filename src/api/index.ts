@@ -24,6 +24,7 @@ import getPortfolio from "./endpoints/get-portfolio";
 import getUserReferrals from "./endpoints/get-user-referrals";
 import isValidCode from "./endpoints/is-valid-code";
 import getTrade from "./endpoints/get-trade";
+import getGlobalStorage from "./endpoints/get-global-storage";
 
 const app = new Hono();
 
@@ -52,6 +53,16 @@ app.get("/stats", async (c) => {
     return c.json(formatSuccess(stats));
   } catch (error) {
     return c.json(formatError("Failed to fetch protocol statistics"), 500);
+  }
+});
+
+// Global storage
+app.get("/global-storage", async (c) => {
+  try {
+    const globalStorage = await getGlobalStorage();
+    return c.json(formatSuccess(globalStorage));
+  } catch (error) {
+    return c.json(formatError("Failed to fetch global storage"), 500);
   }
 });
 

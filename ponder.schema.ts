@@ -82,6 +82,20 @@ export const fee = onchainTable("fee", (t) => ({
   destination: t.text().notNull(),
 }));
 
+export const globalStorage = onchainTable("globalStorage", (t) => ({
+  id: t.text().primaryKey(),
+  owner: t.hex().notNull().default(zeroAddress),
+  allMintsPaused: t.boolean().notNull().default(false),
+  minTransactionSize: t.bigint().notNull().default(0n),
+  minLockAmount: t.bigint().notNull().default(0n),
+  redemptionFee: t.bigint().notNull().default(0n),
+  executeRedemptionFee: t.bigint().notNull().default(0n),
+  streamingFee: t.bigint().notNull().default(0n),
+  treasuryFeeShare: t.bigint().notNull().default(0n),
+  referrerRebate: t.bigint().notNull().default(0n),
+  refereeRebate: t.bigint().notNull().default(0n),
+}));
+
 export const balance = onchainTable(
   "balance",
   (t) => ({

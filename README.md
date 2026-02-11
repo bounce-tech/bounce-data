@@ -1,6 +1,6 @@
 # Bounce Indexing API
 
-A REST API for querying data from the Bounce Tech leveraged token protocol on HyperEVM. This API provides access to leveraged token information, user trades, portfolio data, referral statistics, and protocol-wide metrics.
+A REST API for querying data from the Bounce Tech leveraged token protocol on HyperEVM. This API provides access to leveraged token information, user trades, portfolio data, referral statistics, protocol-wide metrics, and global storage configuration.
 
 **Base URL:** `https://indexing.bounce.tech`
 
@@ -100,6 +100,62 @@ Get aggregated protocol statistics.
   "error": null
 }
 ```
+
+### Global Storage
+
+Get the current global storage configuration (owner, pause state, fee parameters, and rebates). Values are indexed from the GlobalStorage contract. When `data` is present, all fields are always set; fee and amount fields are returned as strings (BigInt serialized).
+
+**Endpoint:** `GET https://indexing.bounce.tech/global-storage`
+
+**Query Parameters:** None
+
+**Response Data:**
+
+- `id`: Row identifier (e.g. `"global"`)
+- `owner`: Global storage contract owner address
+- `allMintsPaused`: Whether all mints are paused (boolean)
+- `minTransactionSize`: Minimum transaction size (string, BigInt)
+- `minLockAmount`: Minimum lock amount (string, BigInt)
+- `redemptionFee`: Redemption fee (string, BigInt)
+- `executeRedemptionFee`: Execute redemption fee (string, BigInt)
+- `streamingFee`: Streaming fee (string, BigInt)
+- `treasuryFeeShare`: Treasury fee share (string, BigInt)
+- `referrerRebate`: Referrer rebate (string, BigInt)
+- `refereeRebate`: Referee rebate (string, BigInt)
+
+**Example Request:**
+
+```
+GET https://indexing.bounce.tech/global-storage
+```
+
+**Example Success Response:**
+
+```json
+{
+  "status": "success",
+  "data": {
+    "id": "global",
+    "owner": "0x1234567890123456789012345678901234567890",
+    "allMintsPaused": false,
+    "minTransactionSize": "1000000",
+    "minLockAmount": "10000000",
+    "redemptionFee": "10000000000000000",
+    "executeRedemptionFee": "5000000000000000",
+    "streamingFee": "10000000000000000",
+    "treasuryFeeShare": "500000000000000000",
+    "referrerRebate": "30000000000000000",
+    "refereeRebate": "20000000000000000"
+  },
+  "error": null
+}
+```
+
+**Note:** If no global storage row has been indexed yet, `data` will be `null`.
+
+**Error Responses:**
+
+- `500 Internal Server Error`: Failed to fetch global storage
 
 ### Portfolio
 
