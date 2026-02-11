@@ -793,6 +793,7 @@ Get all leveraged tokens from the database.
   - `decimals`: ERC-20 decimals (integer)
   - `asset`: Leveraged token target asset (e.g. BTC, ETH)
   - `exchangeRate`: Current exchange rate (as string, serialized from BigInt)
+  - `totalSupply`: Total supply of leveraged tokens in existence (as string, serialized from BigInt)
 
 **Example Request:**
 
@@ -808,25 +809,27 @@ GET https://indexing.bounce.tech/leveraged-tokens
   "data": [
     {
       "address": "0x1eefbacfea06d786ce012c6fc861bec6c7a828c1",
-      "marketId": 1,
-      "targetLeverage": 3.0,
+      "marketId": 0,
+      "targetLeverage": 2,
       "isLong": true,
-      "symbol": "3L-USDC",
-      "name": "3x Long USDC",
+      "symbol": "BTC2L",
+      "name": "BTC 2x Long",
       "decimals": 18,
-      "asset": "USDC",
-      "exchangeRate": "1050000000000000000"
+      "asset": "BTC",
+      "exchangeRate": "1050000000000000000",
+      "totalSupply": "1000000000000000000000"
     },
     {
       "address": "0x22a7a4a38a97ca44473548036f22a7bcd2c25457",
       "marketId": 1,
-      "targetLeverage": 2.0,
+      "targetLeverage": 3,
       "isLong": false,
-      "symbol": "2S-USDC",
-      "name": "2x Short USDC",
+      "symbol": "ETH3S",
+      "name": "ETH 3x Short",
       "decimals": 18,
-      "asset": "USDC",
-      "exchangeRate": "980000000000000000"
+      "asset": "ETH",
+      "exchangeRate": "980000000000000000",
+      "totalSupply": "500000000000000000000"
     }
   ],
   "error": null
@@ -859,6 +862,7 @@ Get data for a single leveraged token by symbol.
   - `decimals`: ERC-20 decimals (integer)
   - `asset`: Leveraged token target asset (e.g. BTC, ETH)
   - `exchangeRate`: Current exchange rate (as string, serialized from BigInt)
+  - `totalSupply`: Total supply of leveraged tokens in existence (as string, serialized from BigInt)
 
 **Example Request:**
 
@@ -873,14 +877,15 @@ GET https://indexing.bounce.tech/leveraged-tokens/3L-USDC
   "status": "success",
   "data": {
     "address": "0x1eefbacfea06d786ce012c6fc861bec6c7a828c1",
-    "marketId": 1,
-    "targetLeverage": 3.0,
+    "marketId": 3,
+    "targetLeverage": 5,
     "isLong": true,
-    "symbol": "3L-USDC",
-    "name": "3x Long USDC",
+    "symbol": "HYPE5L",
+    "name": "HYPE 5x Long",
     "decimals": 18,
-    "asset": "USDC",
-    "exchangeRate": "1050000000000000000"
+    "asset": "HYPE",
+    "exchangeRate": "1050000000000000000",
+    "totalSupply": "1000000000000000000000"
   },
   "error": null
 }

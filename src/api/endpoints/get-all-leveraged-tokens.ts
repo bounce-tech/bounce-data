@@ -13,6 +13,7 @@ export interface LeveragedTokenSummary {
   decimals: number;
   asset: string;
   exchangeRate: bigint;
+  totalSupply: bigint;
 }
 
 export const leveragedTokenSelect = {
@@ -25,6 +26,7 @@ export const leveragedTokenSelect = {
   decimals: schema.leveragedToken.decimals,
   asset: schema.leveragedToken.asset,
   exchangeRate: schema.leveragedToken.exchangeRate,
+  totalSupply: schema.leveragedToken.totalSupply,
 };
 
 const getAllLeveragedTokens = async (): Promise<LeveragedTokenSummary[]> => {
