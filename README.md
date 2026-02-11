@@ -839,13 +839,13 @@ GET https://indexing.bounce.tech/leveraged-tokens
 
 ### Single Leveraged Token
 
-Get data for a single leveraged token by address.
+Get data for a single leveraged token by symbol.
 
-**Endpoint:** `GET https://indexing.bounce.tech/leveraged-tokens/:leveragedTokenAddress`
+**Endpoint:** `GET https://indexing.bounce.tech/leveraged-tokens/:symbol`
 
 **Path Parameters:**
 
-- `leveragedTokenAddress` (required): Ethereum address of the leveraged token contract
+- `symbol` (required): The ERC-20 symbol of the leveraged token (e.g. `3L-USDC`, `2S-BTC`)
 
 **Response Data:**
 
@@ -863,7 +863,7 @@ Get data for a single leveraged token by address.
 **Example Request:**
 
 ```
-GET https://indexing.bounce.tech/leveraged-tokens/0x1eefbacfea06d786ce012c6fc861bec6c7a828c1
+GET https://indexing.bounce.tech/leveraged-tokens/3L-USDC
 ```
 
 **Example Success Response:**
@@ -898,6 +898,6 @@ GET https://indexing.bounce.tech/leveraged-tokens/0x1eefbacfea06d786ce012c6fc861
 
 **Error Responses:**
 
-- `400 Bad Request`: Missing or invalid leveraged token address parameter
+- `400 Bad Request`: Missing symbol parameter
 - `404 Not Found`: Leveraged token not found in the database
-- `500 Internal Server Error`: Failed to fetch leveraged token
+- `500 Internal Server Error`: Failed to fetch leveraged token by symbol
