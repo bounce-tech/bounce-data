@@ -34,7 +34,7 @@ export interface PaginatedTradesResponse {
 
 const getUsersTrades = async (
   user: Address,
-  symbol?: string,
+  targetAsset?: string,
   address?: Address,
   page: number = 1,
   limit: number = 100,
@@ -46,11 +46,11 @@ const getUsersTrades = async (
 
     // Build base where conditions
     const whereConditions: any[] = [eq(schema.trade.recipient, user as Address)];
-    if (symbol && address) {
-      whereConditions.push(eq(schema.leveragedToken.symbol, symbol));
+    if (targetAsset && address) {
+      whereConditions.push(eq(schema.leveragedToken.targetAsset, targetAsset));
       whereConditions.push(eq(schema.leveragedToken.address, address));
-    } else if (symbol) {
-      whereConditions.push(eq(schema.leveragedToken.symbol, symbol));
+    } else if (targetAsset) {
+      whereConditions.push(eq(schema.leveragedToken.targetAsset, targetAsset));
     } else if (address) {
       whereConditions.push(eq(schema.leveragedToken.address, address));
     }
@@ -59,7 +59,7 @@ const getUsersTrades = async (
     // Configure sort columns
     const sortColumnMap: Record<SortField, any> = {
       date: schema.trade.timestamp,
-      symbol: schema.leveragedToken.symbol,
+      targetAsset: schema.leveragedToken.targetAsset,
       activity: schema.trade.isBuy,
       nomVal: schema.trade.baseAssetAmount,
     };
