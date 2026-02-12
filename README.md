@@ -308,7 +308,7 @@ Paginated response containing:
 GET https://indexing.bounce.tech/user-trades?user=0x1234567890123456789012345678901234567890&limit=10
 ```
 
-**Example Request with Asset Filter:**
+**Example Request with Symbol Filter:**
 
 ```
 GET https://indexing.bounce.tech/user-trades?user=0x1234567890123456789012345678901234567890&symbol=ETH2L&limit=20
