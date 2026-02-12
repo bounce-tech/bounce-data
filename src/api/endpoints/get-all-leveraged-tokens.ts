@@ -16,6 +16,7 @@ export interface LeveragedTokenSummary {
   exchangeRate: bigint;
   totalSupply: bigint;
   totalAssets: bigint;
+  baseAssetBalance: bigint;
 }
 
 export const leveragedTokenSelect = {
@@ -29,6 +30,7 @@ export const leveragedTokenSelect = {
   mintPaused: schema.leveragedToken.mintPaused,
   exchangeRate: schema.leveragedToken.exchangeRate,
   totalSupply: schema.leveragedToken.totalSupply,
+  baseAssetBalance: schema.leveragedToken.baseAssetBalance,
 };
 
 const getAllLeveragedTokens = async (): Promise<LeveragedTokenSummary[]> => {
