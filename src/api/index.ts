@@ -85,9 +85,9 @@ app.get("/user-trades", async (c) => {
     const user = c.req.query("user");
     if (!user) return c.json(formatError("Missing user parameter"), 400);
     if (!isAddress(user)) return c.json(formatError("Invalid user address"), 400);
-    const asset = c.req.query("asset");
-    const lt = c.req.query("leveragedTokenAddress");
-    if (lt && !isAddress(lt)) return c.json(formatError("Invalid leveragedTokenAddress"), 400);
+    const symbol = c.req.query("symbol");
+    const address = c.req.query("address");
+    if (address && !isAddress(address)) return c.json(formatError("Invalid address"), 400);
     const page = c.req.query("page");
     const limit = c.req.query("limit");
     const paginationError = validateOffsetPaginationParams(page, limit);
@@ -103,8 +103,8 @@ app.get("/user-trades", async (c) => {
     const parsedLimit = limit ? parseInt(limit, 10) : undefined;
     const trades = await getUsersTrades(
       user,
-      asset,
-      lt as Address | undefined,
+      symbol,
+      address as Address | undefined,
       parsedPage ?? 1,
       parsedLimit ?? 100,
       {

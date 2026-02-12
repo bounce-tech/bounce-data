@@ -18,7 +18,7 @@ export function validateOffsetPaginationParams(
     return null;
 }
 
-export type SortField = "date" | "asset" | "activity" | "nomVal";
+export type SortField = "date" | "symbol" | "activity" | "nomVal";
 export type SortOrder = "asc" | "desc";
 
 export function validateSortParams(
@@ -26,9 +26,9 @@ export function validateSortParams(
     sortOrder: string | undefined
 ): string | null {
     if (sortBy !== undefined) {
-        const validSortFields: SortField[] = ["date", "asset", "activity", "nomVal"];
+        const validSortFields: SortField[] = ["date", "symbol", "activity", "nomVal"];
         if (!validSortFields.includes(sortBy as SortField)) {
-            return "sortBy must be one of: date, asset, activity, nomVal";
+            return "sortBy must be one of: date, symbol, activity, nomVal";
         }
     }
     if (sortOrder !== undefined) {

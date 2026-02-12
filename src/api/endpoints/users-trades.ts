@@ -34,8 +34,8 @@ export interface PaginatedTradesResponse {
 
 const getUsersTrades = async (
   user: Address,
-  asset?: string,
-  leveragedTokenAddress?: Address,
+  symbol?: string,
+  address?: Address,
   page: number = 1,
   limit: number = 100,
   sortOptions: UserTradesSortOptions = {}
@@ -46,20 +46,20 @@ const getUsersTrades = async (
 
     // Build base where conditions
     const whereConditions: any[] = [eq(schema.trade.recipient, user as Address)];
-    if (asset && leveragedTokenAddress) {
-      whereConditions.push(eq(schema.leveragedToken.targetAsset, asset));
-      whereConditions.push(eq(schema.leveragedToken.address, leveragedTokenAddress));
-    } else if (asset) {
-      whereConditions.push(eq(schema.leveragedToken.targetAsset, asset));
-    } else if (leveragedTokenAddress) {
-      whereConditions.push(eq(schema.leveragedToken.address, leveragedTokenAddress));
+    if (symbol && address) {
+      whereConditions.push(eq(schema.leveragedToken.symbol, symbol));
+      whereConditions.push(eq(schema.leveragedToken.address, address));
+    } else if (symbol) {
+      whereConditions.push(eq(schema.leveragedToken.symbol, symbol));
+    } else if (address) {
+      whereConditions.push(eq(schema.leveragedToken.address, address));
     }
     const baseWhere = whereConditions.length > 1 ? and(...whereConditions) : whereConditions[0];
 
     // Configure sort columns
     const sortColumnMap: Record<SortField, any> = {
       date: schema.trade.timestamp,
-      asset: schema.leveragedToken.targetAsset,
+      symbol: schema.leveragedToken.symbol,
       activity: schema.trade.isBuy,
       nomVal: schema.trade.baseAssetAmount,
     };

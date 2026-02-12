@@ -253,25 +253,25 @@ Get all trades for a specific user with optional filtering by asset or leveraged
 **Query Parameters:**
 
 - `user` (required): Ethereum address of the user
-- `asset` (optional): Filter trades by leveraged token symbol
-- `leveragedTokenAddress` (optional): Filter trades by specific leveraged token address
-- `sortBy` (optional): Field to sort by. Values: `date`, `asset`, `activity`, `nomVal`. Default: `date`
+- `symbol` (optional): Filter trades by leveraged token symbol
+- `address` (optional): Filter trades by specific leveraged token address
+- `sortBy` (optional): Field to sort by. Values: `date`, `symbol`, `activity`, `nomVal`. Default: `date`
 - `sortOrder` (optional): Sort direction. Values: `asc` (ascending) or `desc` (descending). Default: `desc`
 - `page` (optional): Page number, starting from 1 (default: 1)
 - `limit` (optional): Number of items per page (default: 100, max: 100)
 
-**Note:** You can combine `asset` and `leveragedTokenAddress` filters. If both are provided, trades must match both conditions.
+**Note:** You can combine `symbol` and `address` filters. If both are provided, trades must match both conditions.
 
 **Sorting:**
 
 - `date`: Sort by trade timestamp (default)
-- `asset`: Sort by leveraged token symbol
+- `symbol`: Sort by leveraged token symbol
 - `activity`: Sort by trade type (buys/sells)
 - `nomVal`: Sort by nominal value (baseAssetAmount)
 
 Default behavior (no sort parameters): returns trades ordered by date descending (most recent first).
 
-When `sortBy = date`, trades are primarily ordered by timestamp (with ID as a secondary tie-breaker). When sorting by `asset`, `activity`, or `nomVal`, results are ordered by that field first, then by timestamp as a secondary sort key, and ID as a tertiary sort key for stable ordering.
+When `sortBy = date`, trades are primarily ordered by timestamp (with ID as a secondary tie-breaker). When sorting by `symbol`, `activity`, or `nomVal`, results are ordered by that field first, then by timestamp as a secondary sort key, and ID as a tertiary sort key for stable ordering.
 
 **Pagination:**
 
@@ -311,7 +311,7 @@ GET https://indexing.bounce.tech/user-trades?user=0x1234567890123456789012345678
 **Example Request with Asset Filter:**
 
 ```
-GET https://indexing.bounce.tech/user-trades?user=0x1234567890123456789012345678901234567890&asset=USDC&limit=20
+GET https://indexing.bounce.tech/user-trades?user=0x1234567890123456789012345678901234567890&symbol=ETH2L&limit=20
 ```
 
 **Example Request (Page 2):**
@@ -323,7 +323,7 @@ GET https://indexing.bounce.tech/user-trades?user=0x1234567890123456789012345678
 **Example Request with Both Filters:**
 
 ```
-GET https://indexing.bounce.tech/user-trades?user=0x1234567890123456789012345678901234567890&asset=USDC&leveragedTokenAddress=0x1eefbacfea06d786ce012c6fc861bec6c7a828c1
+GET https://indexing.bounce.tech/user-trades?user=0x1234567890123456789012345678901234567890&symbol=ETH2L&leveragedTokenAddress=0x1eefbacfea06d786ce012c6fc861bec6c7a828c1
 ```
 
 **Example Request with Custom Sorting (oldest first):**
@@ -394,7 +394,7 @@ GET https://indexing.bounce.tech/user-trades?user=0x1234567890123456789012345678
 
 **Error Responses:**
 
-- `400 Bad Request`: Missing or invalid user address parameter, invalid leveraged token address parameter, invalid page parameter (must be at least 1), invalid limit parameter (must be between 1 and 100), or invalid sort parameters (sortBy must be one of: date, asset, activity, nomVal; sortOrder must be 'asc' or 'desc')
+- `400 Bad Request`: Missing or invalid user address parameter, invalid leveraged token address parameter, invalid page parameter (must be at least 1), invalid limit parameter (must be between 1 and 100), or invalid sort parameters (sortBy must be one of: date, symbol, activity, nomVal; sortOrder must be 'asc' or 'desc')
 - `500 Internal Server Error`: Failed to fetch user trades
 
 ### User Referrals
@@ -711,6 +711,7 @@ Polling this endpoint is also faster than polling the latest trades endpoint, si
 **Response Data:**
 
 Returns `null` if the trade has not been indexed yet, or a trade object containing:
+
 - `id`: Unique trade identifier
 - `isBuy`: `true` for mints (buys), `false` for redeems (sells)
 - `leveragedToken`: Address of the leveraged token
