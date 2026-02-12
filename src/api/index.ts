@@ -85,7 +85,7 @@ app.get("/user-trades", async (c) => {
     const user = c.req.query("user");
     if (!user) return c.json(formatError("Missing user parameter"), 400);
     if (!isAddress(user)) return c.json(formatError("Invalid user address"), 400);
-    const symbol = c.req.query("symbol");
+    const targetAsset = c.req.query("targetAsset");
     const address = c.req.query("address");
     if (address && !isAddress(address)) return c.json(formatError("Invalid address parameter"), 400);
     const page = c.req.query("page");
@@ -103,7 +103,7 @@ app.get("/user-trades", async (c) => {
     const parsedLimit = limit ? parseInt(limit, 10) : undefined;
     const trades = await getUsersTrades(
       user,
-      symbol,
+      targetAsset,
       address as Address | undefined,
       parsedPage ?? 1,
       parsedLimit ?? 100,

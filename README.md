@@ -207,12 +207,12 @@ GET https://indexing.bounce.tech/portfolio/0x12345678901234567890123456789012345
     "leveragedTokens": [
       {
         "address": "0x1eefbacfea06d786ce012c6fc861bec6c7a828c1",
-        "targetLeverage": 3.0,
+        "targetLeverage": 3,
         "isLong": true,
-        "symbol": "3L-USDC",
-        "name": "3x Long USDC",
+        "symbol": "ETH3L",
+        "name": "ETH 3x Long",
         "decimals": 18,
-        "targetAsset": "USDC",
+        "targetAsset": "ETH",
         "mintPaused": false,
         "exchangeRate": "1050000000000000000",
         "userBalance": "5000000000000000000",
@@ -253,25 +253,25 @@ Get all trades for a specific user with optional filtering by asset or leveraged
 **Query Parameters:**
 
 - `user` (required): Ethereum address of the user
-- `symbol` (optional): Filter trades by leveraged token symbol
+- `targetAsset` (optional): Filter trades by target asset (e.g. ETH, BTC)
 - `address` (optional): Filter trades by specific leveraged token address
-- `sortBy` (optional): Field to sort by. Values: `date`, `symbol`, `activity`, `nomVal`. Default: `date`
+- `sortBy` (optional): Field to sort by. Values: `date`, `targetAsset`, `activity`, `nomVal`. Default: `date`
 - `sortOrder` (optional): Sort direction. Values: `asc` (ascending) or `desc` (descending). Default: `desc`
 - `page` (optional): Page number, starting from 1 (default: 1)
 - `limit` (optional): Number of items per page (default: 100, max: 100)
 
-**Note:** You can combine `symbol` and `address` filters. If both are provided, trades must match both conditions.
+**Note:** You can combine `targetAsset` and `address` filters. If both are provided, trades must match both conditions.
 
 **Sorting:**
 
 - `date`: Sort by trade timestamp (default)
-- `symbol`: Sort by leveraged token symbol
+- `targetAsset`: Sort by leveraged token targetAsset
 - `activity`: Sort by trade type (buys/sells)
 - `nomVal`: Sort by nominal value (baseAssetAmount)
 
 Default behavior (no sort parameters): returns trades ordered by date descending (most recent first).
 
-When `sortBy = date`, trades are primarily ordered by timestamp (with ID as a secondary tie-breaker). When sorting by `symbol`, `activity`, or `nomVal`, results are ordered by that field first, then by timestamp as a secondary sort key, and ID as a tertiary sort key for stable ordering.
+When `sortBy = date`, trades are primarily ordered by timestamp (with ID as a secondary tie-breaker). When sorting by `targetAsset`, `activity`, or `nomVal`, results are ordered by that field first, then by timestamp as a secondary sort key, and ID as a tertiary sort key for stable ordering.
 
 **Pagination:**
 
@@ -311,7 +311,7 @@ GET https://indexing.bounce.tech/user-trades?user=0x1234567890123456789012345678
 **Example Request with Symbol Filter:**
 
 ```
-GET https://indexing.bounce.tech/user-trades?user=0x1234567890123456789012345678901234567890&symbol=ETH2L&limit=20
+GET https://indexing.bounce.tech/user-trades?user=0x1234567890123456789012345678901234567890&targetAsset=ETH&limit=20
 ```
 
 **Example Request (Page 2):**
@@ -323,7 +323,7 @@ GET https://indexing.bounce.tech/user-trades?user=0x1234567890123456789012345678
 **Example Request with Both Filters:**
 
 ```
-GET https://indexing.bounce.tech/user-trades?user=0x1234567890123456789012345678901234567890&symbol=ETH2L&address=0x1eefbacfea06d786ce012c6fc861bec6c7a828c1
+GET https://indexing.bounce.tech/user-trades?user=0x1234567890123456789012345678901234567890&targetAsset=ETH&address=0x1eefbacfea06d786ce012c6fc861bec6c7a828c1
 ```
 
 **Example Request with Custom Sorting (oldest first):**
@@ -353,9 +353,9 @@ GET https://indexing.bounce.tech/user-trades?user=0x1234567890123456789012345678
         "baseAssetAmount": "500000000",
         "leveragedTokenAmount": "2500000000000000000",
         "leveragedToken": "0x1eefbacfea06d786ce012c6fc861bec6c7a828c1",
-        "targetLeverage": 3.0,
+        "targetLeverage": 3,
         "isLong": true,
-        "targetAsset": "USDC",
+        "targetAsset": "ETH",
         "profitAmount": 50.0,
         "profitPercent": 0.1
       },
@@ -367,9 +367,9 @@ GET https://indexing.bounce.tech/user-trades?user=0x1234567890123456789012345678
         "baseAssetAmount": "1000000000",
         "leveragedTokenAmount": "5000000000000000000",
         "leveragedToken": "0x1eefbacfea06d786ce012c6fc861bec6c7a828c1",
-        "targetLeverage": 3.0,
+        "targetLeverage": 3,
         "isLong": true,
-        "targetAsset": "USDC",
+        "targetAsset": "BTC",
         "profitAmount": null,
         "profitPercent": null
       }
@@ -394,7 +394,7 @@ GET https://indexing.bounce.tech/user-trades?user=0x1234567890123456789012345678
 
 **Error Responses:**
 
-- `400 Bad Request`: Missing or invalid user address parameter, invalid address parameter, invalid page parameter (must be at least 1), invalid limit parameter (must be between 1 and 100), or invalid sort parameters (sortBy must be one of: date, symbol, activity, nomVal; sortOrder must be 'asc' or 'desc')
+- `400 Bad Request`: Missing or invalid user address parameter, invalid address parameter, invalid page parameter (must be at least 1), invalid limit parameter (must be between 1 and 100), or invalid sort parameters (sortBy must be one of: date, targetAsset, activity, nomVal; sortOrder must be 'asc' or 'desc')
 - `500 Internal Server Error`: Failed to fetch user trades
 
 ### User Referrals
