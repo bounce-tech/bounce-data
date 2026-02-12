@@ -311,7 +311,7 @@ GET https://indexing.bounce.tech/user-trades?user=0x1234567890123456789012345678
 **Example Request with Symbol Filter:**
 
 ```
-GET https://indexing.bounce.tech/user-trades?user=0x1234567890123456789012345678901234567890&targetAsset=ETH2L&limit=20
+GET https://indexing.bounce.tech/user-trades?user=0x1234567890123456789012345678901234567890&targetAsset=ETH&limit=20
 ```
 
 **Example Request (Page 2):**
@@ -323,7 +323,7 @@ GET https://indexing.bounce.tech/user-trades?user=0x1234567890123456789012345678
 **Example Request with Both Filters:**
 
 ```
-GET https://indexing.bounce.tech/user-trades?user=0x1234567890123456789012345678901234567890&targetAsset=ETH2L&address=0x1eefbacfea06d786ce012c6fc861bec6c7a828c1
+GET https://indexing.bounce.tech/user-trades?user=0x1234567890123456789012345678901234567890&targetAsset=ETH&address=0x1eefbacfea06d786ce012c6fc861bec6c7a828c1
 ```
 
 **Example Request with Custom Sorting (oldest first):**
