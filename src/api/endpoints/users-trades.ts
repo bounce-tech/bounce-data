@@ -62,12 +62,21 @@ const getUsersTrades = async (
       targetAsset: schema.leveragedToken.targetAsset,
       activity: schema.trade.isBuy,
       nomVal: schema.trade.baseAssetAmount,
+      pnlAmount: schema.trade.profitAmount,
+      pnlPercent: schema.trade.profitPercent,
     };
 
     const orderFn = sortDescending ? desc : asc;
     const isDateSort = sortBy === "date";
+    const isPnlSort = sortBy === "pnlAmount" || sortBy === "pnlPercent";
+
+    // For PnL sorts, use NULLS LAST so buy trades (null PnL) always appear at the end
+    const primaryOrder = isPnlSort
+      ? sql`${sortColumnMap[sortBy]} ${sql.raw(sortDescending ? "DESC" : "ASC")} NULLS LAST`
+      : orderFn(sortColumnMap[sortBy]);
+
     const orderByClause = [
-      orderFn(sortColumnMap[sortBy]),
+      primaryOrder,
       ...(isDateSort ? [] : [desc(schema.trade.timestamp)]),
       asc(schema.trade.id),
     ];
