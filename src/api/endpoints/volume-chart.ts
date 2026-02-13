@@ -1,6 +1,6 @@
 import { db } from "ponder:api";
 import schema from "ponder:schema";
-import { asc, sql } from "drizzle-orm";
+import { asc, eq } from "drizzle-orm";
 import bigIntToNumber from "../utils/big-int-to-number";
 
 const SECONDS_PER_DAY = 86400;
@@ -20,9 +20,9 @@ const getVolumeChart = async (): Promise<VolumeChartPoint[]> => {
         targetLeverage: schema.leveragedToken.targetLeverage,
       })
       .from(schema.trade)
-      .leftJoin(
+      .innerJoin(
         schema.leveragedToken,
-        sql`${schema.trade.leveragedToken} = ${schema.leveragedToken.address}`
+        eq(schema.trade.leveragedToken, schema.leveragedToken.address)
       )
       .orderBy(asc(schema.trade.timestamp));
 
@@ -30,8 +30,7 @@ const getVolumeChart = async (): Promise<VolumeChartPoint[]> => {
     for (const trade of trades) {
       const ts = Number(trade.timestamp);
       const dayTimestamp = ts - (ts % SECONDS_PER_DAY);
-      const leverage = trade.targetLeverage ?? LEVERAGE_DECIMALS;
-      const notionalVolume = (trade.baseAssetAmount * leverage) / LEVERAGE_DECIMALS;
+      const notionalVolume = (trade.baseAssetAmount * trade.targetLeverage) / LEVERAGE_DECIMALS;
       dailyTotals.set(dayTimestamp, (dailyTotals.get(dayTimestamp) ?? 0n) + notionalVolume);
     }
 
