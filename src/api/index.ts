@@ -25,6 +25,7 @@ import getUserReferrals from "./endpoints/get-user-referrals";
 import isValidCode from "./endpoints/is-valid-code";
 import getTrade from "./endpoints/get-trade";
 import getGlobalStorage from "./endpoints/get-global-storage";
+import getFeeChart from "./endpoints/fee-chart";
 
 const app = new Hono();
 
@@ -53,6 +54,16 @@ app.get("/stats", async (c) => {
     return c.json(formatSuccess(stats));
   } catch (error) {
     return c.json(formatError("Failed to fetch protocol statistics"), 500);
+  }
+});
+
+// Fee chart
+app.get("/fee-chart", async (c) => {
+  try {
+    const feeChart = await getFeeChart();
+    return c.json(formatSuccess(feeChart));
+  } catch (error) {
+    return c.json(formatError("Failed to fetch fee chart data"), 500);
   }
 });
 
