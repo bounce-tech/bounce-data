@@ -255,7 +255,7 @@ Get all trades for a specific user with optional filtering by asset or leveraged
 - `user` (required): Ethereum address of the user
 - `targetAsset` (optional): Filter trades by target asset (e.g. ETH, BTC)
 - `address` (optional): Filter trades by specific leveraged token address
-- `sortBy` (optional): Field to sort by. Values: `date`, `targetAsset`, `activity`, `nomVal`. Default: `date`
+- `sortBy` (optional): Field to sort by. Values: `date`, `targetAsset`, `activity`, `nomVal`, `pnlAmount`, `pnlPercent`. Default: `date`
 - `sortOrder` (optional): Sort direction. Values: `asc` (ascending) or `desc` (descending). Default: `desc`
 - `page` (optional): Page number, starting from 1 (default: 1)
 - `limit` (optional): Number of items per page (default: 100, max: 100)
@@ -268,10 +268,12 @@ Get all trades for a specific user with optional filtering by asset or leveraged
 - `targetAsset`: Sort by leveraged token targetAsset
 - `activity`: Sort by trade type (buys/sells)
 - `nomVal`: Sort by nominal value (baseAssetAmount)
+- `pnlAmount`: Sort by profit amount (absolute USDC profit). Trades without PnL data (buy trades) are always placed at the end regardless of sort direction.
+- `pnlPercent`: Sort by profit percentage. Trades without PnL data (buy trades) are always placed at the end regardless of sort direction.
 
 Default behavior (no sort parameters): returns trades ordered by date descending (most recent first).
 
-When `sortBy = date`, trades are primarily ordered by timestamp (with ID as a secondary tie-breaker). When sorting by `targetAsset`, `activity`, or `nomVal`, results are ordered by that field first, then by timestamp as a secondary sort key, and ID as a tertiary sort key for stable ordering.
+When `sortBy = date`, trades are primarily ordered by timestamp (with ID as a secondary tie-breaker). When sorting by `targetAsset`, `activity`, `nomVal`, `pnlAmount`, or `pnlPercent`, results are ordered by that field first, then by timestamp as a secondary sort key, and ID as a tertiary sort key for stable ordering.
 
 **Pagination:**
 
@@ -338,6 +340,18 @@ GET https://indexing.bounce.tech/user-trades?user=0x1234567890123456789012345678
 GET https://indexing.bounce.tech/user-trades?user=0x1234567890123456789012345678901234567890&sortBy=nomVal&sortOrder=desc
 ```
 
+**Example Request Sorted by PnL Amount (highest profit first):**
+
+```
+GET https://indexing.bounce.tech/user-trades?user=0x1234567890123456789012345678901234567890&sortBy=pnlAmount&sortOrder=desc
+```
+
+**Example Request Sorted by PnL Percentage (highest percent first):**
+
+```
+GET https://indexing.bounce.tech/user-trades?user=0x1234567890123456789012345678901234567890&sortBy=pnlPercent&sortOrder=desc
+```
+
 **Example Success Response:**
 
 ```json
@@ -394,7 +408,7 @@ GET https://indexing.bounce.tech/user-trades?user=0x1234567890123456789012345678
 
 **Error Responses:**
 
-- `400 Bad Request`: Missing or invalid user address parameter, invalid address parameter, invalid page parameter (must be at least 1), invalid limit parameter (must be between 1 and 100), or invalid sort parameters (sortBy must be one of: date, targetAsset, activity, nomVal; sortOrder must be 'asc' or 'desc')
+- `400 Bad Request`: Missing or invalid user address parameter, invalid address parameter, invalid page parameter (must be at least 1), invalid limit parameter (must be between 1 and 100), or invalid sort parameters (sortBy must be one of: date, targetAsset, activity, nomVal, pnlAmount, pnlPercent; sortOrder must be 'asc' or 'desc')
 - `500 Internal Server Error`: Failed to fetch user trades
 
 ### User Referrals

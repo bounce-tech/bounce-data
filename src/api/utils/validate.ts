@@ -18,17 +18,18 @@ export function validateOffsetPaginationParams(
     return null;
 }
 
-export type SortField = "date" | "targetAsset" | "activity" | "nomVal";
+export type SortField = "date" | "targetAsset" | "activity" | "nomVal" | "pnlAmount" | "pnlPercent";
 export type SortOrder = "asc" | "desc";
+
+const VALID_SORT_FIELDS: SortField[] = ["date", "targetAsset", "activity", "nomVal", "pnlAmount", "pnlPercent"];
 
 export function validateSortParams(
     sortBy: string | undefined,
     sortOrder: string | undefined
 ): string | null {
     if (sortBy !== undefined) {
-        const validSortFields: SortField[] = ["date", "targetAsset", "activity", "nomVal"];
-        if (!validSortFields.includes(sortBy as SortField)) {
-            return "sortBy must be one of: date, targetAsset, activity, nomVal";
+        if (!VALID_SORT_FIELDS.includes(sortBy as SortField)) {
+            return `sortBy must be one of: ${VALID_SORT_FIELDS.join(", ")}`;
         }
     }
     if (sortOrder !== undefined) {

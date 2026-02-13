@@ -1,6 +1,5 @@
 import { Trade, TradeType } from "../queries/trades-for-user";
 import { Transfer, TransferType } from "../queries/transfers-for-user";
-import bigIntToNumber from "./big-int-to-number";
 
 export type ActionType = TradeType | TransferType;
 

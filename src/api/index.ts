@@ -248,6 +248,5 @@ app.get("/total-rebates", async (c) => {
   }
 });
 
-
 export default app;
 
