@@ -1,10 +1,9 @@
 import { db } from "ponder:api";
 import schema from "ponder:schema";
-import { asc, eq, sql } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
+import bigIntToNumber from "../utils/big-int-to-number";
 
 const SECONDS_PER_DAY = 86400;
-const BASE_ASSET_DECIMALS = BigInt(1e6);
-const LEVERAGE_DECIMALS = BigInt(1e18);
 
 interface VolumeChartPoint {
   timestamp: number;
@@ -13,33 +12,26 @@ interface VolumeChartPoint {
 
 const getVolumeChart = async (): Promise<VolumeChartPoint[]> => {
   try {
-    const trades = await db
+    const dailyVolumes = await db
       .select({
-        timestamp: schema.trade.timestamp,
-        notionalVolume: sql<string>`${schema.trade.baseAssetAmount} * ${schema.leveragedToken.targetLeverage
-          } / (${LEVERAGE_DECIMALS * BASE_ASSET_DECIMALS})`,
+        dayTimestamp: sql<string>`(${schema.trade.timestamp} - (${schema.trade.timestamp} % ${SECONDS_PER_DAY}))`,
+        totalVolume: sql<string>`sum(${schema.trade.baseAssetAmount} * ${schema.leveragedToken.targetLeverage})`,
       })
       .from(schema.trade)
       .innerJoin(
         schema.leveragedToken,
         eq(schema.trade.leveragedToken, schema.leveragedToken.address)
       )
-      .orderBy(asc(schema.trade.timestamp));
+      .groupBy(sql`1`)
+      .orderBy(sql`1 asc`);
 
-    const dailyTotals = new Map<number, number>();
-    for (const trade of trades) {
-      const ts = Number(trade.timestamp);
-      const dayTimestamp = ts - (ts % SECONDS_PER_DAY);
-      dailyTotals.set(dayTimestamp, (dailyTotals.get(dayTimestamp) ?? 0) + Number(trade.notionalVolume));
-    }
-
-    let cumulativeVolume = 0;
+    let cumulativeVolume = 0n;
     const chart: VolumeChartPoint[] = [];
-    for (const day of Array.from(dailyTotals.keys()).sort((a, b) => a - b)) {
-      cumulativeVolume += dailyTotals.get(day)!;
+    for (const day of dailyVolumes) {
+      cumulativeVolume += BigInt(day.totalVolume);
       chart.push({
-        timestamp: day * 1000,
-        cumulativeVolume,
+        timestamp: Number(day.dayTimestamp) * 1000,
+        cumulativeVolume: bigIntToNumber(cumulativeVolume, 24),
       });
     }
 
