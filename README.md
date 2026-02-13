@@ -148,6 +148,53 @@ GET https://indexing.bounce.tech/fee-chart
 
 - `500 Internal Server Error`: Failed to fetch fee chart data
 
+### Volume Chart
+
+Get cumulative notional volume aggregated per day. Each data point represents the running total of all notional trading volume up to and including that day. Notional volume is calculated as `baseAssetAmount * targetLeverage` for each trade. Useful for visualizing volume growth over time.
+
+**Endpoint:** `GET https://indexing.bounce.tech/volume-chart`
+
+**Query Parameters:** None
+
+**Response Data:**
+
+- Array of chart data points ordered by date ascending, each containing:
+  - `timestamp`: Start of day as Unix timestamp in milliseconds (number)
+  - `cumulativeVolume`: Running total of all notional volume up to and including this day (number, in base asset units)
+
+**Example Request:**
+
+```
+GET https://indexing.bounce.tech/volume-chart
+```
+
+**Example Success Response:**
+
+```json
+{
+  "status": "success",
+  "data": [
+    {
+      "timestamp": 1704067200000,
+      "cumulativeVolume": 50000.0
+    },
+    {
+      "timestamp": 1704153600000,
+      "cumulativeVolume": 125000.5
+    },
+    {
+      "timestamp": 1704240000000,
+      "cumulativeVolume": 310000.75
+    }
+  ],
+  "error": null
+}
+```
+
+**Error Responses:**
+
+- `500 Internal Server Error`: Failed to fetch volume chart data
+
 ### Global Storage
 
 Get the current global storage configuration (owner, pause state, fee parameters, and rebates). Values are indexed from the GlobalStorage contract. When `data` is present, all fields are always set; fee and amount fields are returned as strings (BigInt serialized).
