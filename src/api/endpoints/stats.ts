@@ -1,6 +1,6 @@
 import { db } from "ponder:api";
 import schema from "ponder:schema";
-import { eq, sql } from "drizzle-orm";
+import { sql } from "drizzle-orm";
 
 const BASE_ASSET_DECIMALS = BigInt(1e6);
 const LEVERAGE_DECIMALS = BigInt(1e18);
