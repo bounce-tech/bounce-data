@@ -123,8 +123,7 @@ const getActiveUsersChart = async (): Promise<ActiveUsersChartPoint[]> => {
 
     return chart;
   } catch (error) {
-    throw new Error((error as Error).message);
-    // throw new Error("Failed to fetch active users chart data");
+    throw new Error("Failed to fetch active users chart data");
   }
 };
 

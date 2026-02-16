@@ -85,7 +85,6 @@ app.get("/active-users-chart", async (c) => {
     const activeUsersChart = await getActiveUsersChart();
     return c.json(formatSuccess(activeUsersChart));
   } catch (error) {
-    return c.json(formatError((error as Error).message), 500);
     return c.json(formatError("Failed to fetch active users chart data"), 500);
   }
 });
