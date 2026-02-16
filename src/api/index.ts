@@ -27,6 +27,7 @@ import getTrade from "./endpoints/get-trade";
 import getGlobalStorage from "./endpoints/get-global-storage";
 import getFeeChart from "./endpoints/fee-chart";
 import getVolumeChart from "./endpoints/volume-chart";
+import getActiveUsersChart from "./endpoints/active-users-chart";
 
 const app = new Hono();
 
@@ -75,6 +76,16 @@ app.get("/volume-chart", async (c) => {
     return c.json(formatSuccess(volumeChart));
   } catch (error) {
     return c.json(formatError("Failed to fetch volume chart data"), 500);
+  }
+});
+
+// Active users chart
+app.get("/active-users-chart", async (c) => {
+  try {
+    const activeUsersChart = await getActiveUsersChart();
+    return c.json(formatSuccess(activeUsersChart));
+  } catch (error) {
+    return c.json(formatError("Failed to fetch active users chart data"), 500);
   }
 });
 
