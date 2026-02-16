@@ -1,10 +1,6 @@
 import { db } from "ponder:api";
 import schema from "ponder:schema";
 import { sql } from "drizzle-orm";
-import { formatUnits } from "viem";
-import getLeveragedTokenData, {
-  LeveragedTokenData,
-} from "../utils/leveraged-token-data";
 
 const BASE_ASSET_DECIMALS = BigInt(1e6);
 const LEVERAGE_DECIMALS = BigInt(1e18);
@@ -29,37 +25,19 @@ const getStats = async () => {
       .select({
         supportedAssets: sql<number>`count(distinct ${schema.leveragedToken.marketId})`,
         leveragedTokens: sql<number>`count(distinct ${schema.leveragedToken.address})`,
-        treasuryFees: sql<string>`sum(${schema.fee.amount}) / ${BASE_ASSET_DECIMALS}`,
+        totalAssets: sql<string>`sum((${schema.leveragedToken.totalSupply} * ${schema.leveragedToken.exchangeRate}) / ${LEVERAGE_DECIMALS}) / ${LEVERAGE_DECIMALS}`,
+        openInterest: sql<string>`sum((((${schema.leveragedToken.totalSupply} * ${schema.leveragedToken.exchangeRate}) / ${LEVERAGE_DECIMALS}) * ${schema.leveragedToken.targetLeverage}) / ${LEVERAGE_DECIMALS}) / ${LEVERAGE_DECIMALS}`,
       })
-      .from(schema.leveragedToken)
-      .leftJoin(
-        schema.fee,
-        sql`${schema.fee.leveragedToken} = ${schema.leveragedToken.address} and ${schema.fee.destination} = 'treasury'`
-      );
-
-    // Querying leveraged token contracts
-    const leveragedTokenData = await getLeveragedTokenData();
-
-    // Calculating total value locked and open interest
-    const tvlBn = leveragedTokenData.reduce(
-      (acc: bigint, token: LeveragedTokenData) => {
-        return acc + token.totalAssets;
-      },
-      0n
-    );
-    const tvl = Number(formatUnits(tvlBn, 6));
-    const openInterestBn = leveragedTokenData.reduce(
-      (acc: bigint, token: LeveragedTokenData) => {
-        return (
-          acc +
-          (token.totalAssets * BigInt(token.targetLeverage)) / LEVERAGE_DECIMALS
-        );
-      },
-      0n
-    );
-    const openInterest = Number(formatUnits(openInterestBn, 6));
+      .from(schema.leveragedToken);
+    const feesResult = await db
+      .select({
+        totalFees: sql<string>`sum(${schema.fee.amount}) / ${BASE_ASSET_DECIMALS}`,
+      })
+      .from(schema.fee);
 
     // Formatting results
+    const totalValueLocked = Number(leveragedTokenResult[0]?.totalAssets || 0);
+    const openInterest = Number(leveragedTokenResult[0]?.openInterest || 0);
     const marginVolume = Number(tradeResult[0]?.marginVolume || 0);
     const notionalVolume = Number(tradeResult[0]?.notionalVolume || 0);
     const averageLeverage = marginVolume > 0 ? notionalVolume / marginVolume : 0;
@@ -67,7 +45,7 @@ const getStats = async () => {
     const leveragedTokens = leveragedTokenResult[0]?.leveragedTokens || 0;
     const uniqueUsers = tradeResult[0]?.uniqueUsers || 0;
     const totalTrades = tradeResult[0]?.totalTrades || 0;
-    const treasuryFees = Number(leveragedTokenResult[0]?.treasuryFees || 0);
+    const treasuryFees = Number(feesResult[0]?.totalFees || 0);
 
     // Returning results
     return {
@@ -77,7 +55,7 @@ const getStats = async () => {
       supportedAssets: uniqueAssets,
       leveragedTokens: leveragedTokens,
       uniqueUsers: uniqueUsers,
-      totalValueLocked: tvl,
+      totalValueLocked: totalValueLocked,
       openInterest: openInterest,
       totalTrades: totalTrades,
       treasuryFees: treasuryFees,
