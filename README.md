@@ -1,6 +1,6 @@
 # Bounce Indexing API
 
-A REST API for querying data from the Bounce Tech leveraged token protocol on HyperEVM. This API provides access to leveraged token information, user trades, portfolio data, referral statistics, protocol-wide metrics, and global storage configuration.
+A REST API for querying data from the Bounce Tech leveraged token protocol on HyperEVM. This API provides access to leveraged token information, user trades, portfolio data, referral statistics, protocol-wide metrics, fee chart data, and global storage configuration.
 
 **Base URL:** `https://indexing.bounce.tech`
 
@@ -100,6 +100,100 @@ Get aggregated protocol statistics.
   "error": null
 }
 ```
+
+### Fee Chart
+
+Get cumulative fee amounts aggregated per day. Each data point represents the running total of all fees collected up to and including that day. Useful for visualizing fee growth over time.
+
+**Endpoint:** `GET https://indexing.bounce.tech/fee-chart`
+
+**Query Parameters:** None
+
+**Response Data:**
+
+- Array of chart data points ordered by date ascending, each containing:
+  - `timestamp`: Start of day as Unix timestamp in milliseconds (number)
+  - `cumulativeFees`: Running total of all fees collected up to and including this day (number, in base asset units)
+
+**Example Request:**
+
+```
+GET https://indexing.bounce.tech/fee-chart
+```
+
+**Example Success Response:**
+
+```json
+{
+  "status": "success",
+  "data": [
+    {
+      "timestamp": 1704067200000,
+      "cumulativeFees": 1234.56
+    },
+    {
+      "timestamp": 1704153600000,
+      "cumulativeFees": 2500.89
+    },
+    {
+      "timestamp": 1704240000000,
+      "cumulativeFees": 4321.12
+    }
+  ],
+  "error": null
+}
+```
+
+**Error Responses:**
+
+- `500 Internal Server Error`: Failed to fetch fee chart data
+
+### Volume Chart
+
+Get cumulative notional volume aggregated per day. Each data point represents the running total of all notional trading volume up to and including that day. Notional volume is calculated as `baseAssetAmount * targetLeverage` for each trade. Useful for visualizing volume growth over time.
+
+**Endpoint:** `GET https://indexing.bounce.tech/volume-chart`
+
+**Query Parameters:** None
+
+**Response Data:**
+
+- Array of chart data points ordered by date ascending, each containing:
+  - `timestamp`: Start of day as Unix timestamp in milliseconds (number)
+  - `cumulativeVolume`: Running total of all notional volume up to and including this day (number, in base asset units)
+
+**Example Request:**
+
+```
+GET https://indexing.bounce.tech/volume-chart
+```
+
+**Example Success Response:**
+
+```json
+{
+  "status": "success",
+  "data": [
+    {
+      "timestamp": 1704067200000,
+      "cumulativeVolume": 50000.0
+    },
+    {
+      "timestamp": 1704153600000,
+      "cumulativeVolume": 125000.5
+    },
+    {
+      "timestamp": 1704240000000,
+      "cumulativeVolume": 310000.75
+    }
+  ],
+  "error": null
+}
+```
+
+**Error Responses:**
+
+- `500 Internal Server Error`: Failed to fetch volume chart data
 
 ### Global Storage
 
