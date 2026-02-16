@@ -91,48 +91,11 @@ app.get("/portfolio/:user", async (c) => {
   }
 });
 
-// All trades with pagination
-app.get("/trades", async (c) => {
-  try {
-    const targetAsset = c.req.query("targetAsset");
-    const address = c.req.query("address");
-    if (address && !isAddress(address)) return c.json(formatError("Invalid address parameter"), 400);
-    const page = c.req.query("page");
-    const limit = c.req.query("limit");
-    const paginationError = validateOffsetPaginationParams(page, limit);
-    if (paginationError) return c.json(formatError(paginationError), 400);
-
-    // Sort params
-    const sortBy = c.req.query("sortBy");
-    const sortOrder = c.req.query("sortOrder");
-    const sortError = validateSortParams(sortBy, sortOrder);
-    if (sortError) return c.json(formatError(sortError), 400);
-
-    const parsedPage = page ? parseInt(page, 10) : undefined;
-    const parsedLimit = limit ? parseInt(limit, 10) : undefined;
-    const trades = await getTrades(
-      undefined,
-      targetAsset,
-      address as Address | undefined,
-      parsedPage ?? 1,
-      parsedLimit ?? 100,
-      {
-        sortBy: sortBy as SortField | undefined,
-        sortOrder: sortOrder as SortOrder | undefined,
-      }
-    );
-    return c.json(formatSuccess(trades));
-  } catch (error) {
-    return c.json(formatError("Failed to fetch trades"), 500);
-  }
-});
-
-// Trades for a specific user with pagination
-app.get("/trades/:user", async (c) => {
+// Trades with pagination (optional user filter via path param)
+const handleTrades = async (c: any) => {
   try {
     const user = c.req.param("user");
-    if (!user) return c.json(formatError("Missing user parameter"), 400);
-    if (!isAddress(user)) return c.json(formatError("Invalid user address"), 400);
+    if (user && !isAddress(user)) return c.json(formatError("Invalid user address"), 400);
     const targetAsset = c.req.query("targetAsset");
     const address = c.req.query("address");
     if (address && !isAddress(address)) return c.json(formatError("Invalid address parameter"), 400);
@@ -150,7 +113,7 @@ app.get("/trades/:user", async (c) => {
     const parsedPage = page ? parseInt(page, 10) : undefined;
     const parsedLimit = limit ? parseInt(limit, 10) : undefined;
     const trades = await getTrades(
-      user,
+      user || undefined,
       targetAsset,
       address as Address | undefined,
       parsedPage ?? 1,
@@ -164,7 +127,9 @@ app.get("/trades/:user", async (c) => {
   } catch (error) {
     return c.json(formatError("Failed to fetch trades"), 500);
   }
-});
+};
+app.get("/trades", handleTrades);
+app.get("/trades/:user", handleTrades);
 
 // User referrals
 app.get("/user-referrals/:user", async (c) => {
