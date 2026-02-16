@@ -43,16 +43,6 @@ export const trade = onchainTable("trade", (t) => ({
   txHash: t.hex().notNull(),
 }));
 
-export const transfer = onchainTable("transfer", (t) => ({
-  id: t.text().primaryKey(),
-  timestamp: t.bigint().notNull(),
-  leveragedToken: t.hex().notNull(),
-  sender: t.hex().notNull(),
-  recipient: t.hex().notNull(),
-  amount: t.bigint().notNull(),
-  txHash: t.hex().notNull(),
-}));
-
 export const user = onchainTable("user", (t) => ({
   address: t.hex().notNull().primaryKey(),
   referralCode: t.text(),
@@ -127,7 +117,6 @@ export const leveragedTokensRelations = relations(
   leveragedToken,
   ({ many }) => ({
     trades: many(trade),
-    transfers: many(transfer),
     fees: many(fee),
     balances: many(balance),
     pendingRedemptions: many(pendingRedemption),
@@ -137,13 +126,6 @@ export const leveragedTokensRelations = relations(
 export const tradesRelations = relations(trade, ({ one }) => ({
   leveragedToken: one(leveragedToken, {
     fields: [trade.leveragedToken],
-    references: [leveragedToken.address],
-  }),
-}));
-
-export const transfersRelations = relations(transfer, ({ one }) => ({
-  leveragedToken: one(leveragedToken, {
-    fields: [transfer.leveragedToken],
     references: [leveragedToken.address],
   }),
 }));
