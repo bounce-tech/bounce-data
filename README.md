@@ -385,15 +385,14 @@ GET https://indexing.bounce.tech/portfolio/0x12345678901234567890123456789012345
 - `400 Bad Request`: Missing or invalid user address parameter
 - `500 Internal Server Error`: Failed to fetch portfolio
 
-### User Trades
+### Trades
 
-Get all trades for a specific user with optional filtering by asset or leveraged token address.
+Get all trades across all users with optional filtering by asset or leveraged token address.
 
-**Endpoint:** `GET https://indexing.bounce.tech/user-trades`
+**Endpoint:** `GET https://indexing.bounce.tech/trades`
 
 **Query Parameters:**
 
-- `user` (required): Ethereum address of the user
 - `targetAsset` (optional): Filter trades by target asset (e.g. ETH, BTC)
 - `address` (optional): Filter trades by specific leveraged token address
 - `sortBy` (optional): Field to sort by. Values: `date`, `targetAsset`, `activity`, `nomVal`, `pnlAmount`, `pnlPercent`. Default: `date`
@@ -436,6 +435,8 @@ Paginated response containing:
   - `baseAssetAmount`: Amount of USDC
   - `leveragedTokenAmount`: Amount of leveraged tokens (as string, serialized from BigInt)
   - `leveragedToken`: Address of the leveraged token
+  - `sender`: Address initiating the trade
+  - `recipient`: Address receiving the tokens
   - `targetLeverage`: Target leverage of the leveraged token (number)
   - `isLong`: Whether the leveraged token is a long position
   - `targetAsset`: Leveraged token target asset (e.g. BTC, ETH)
@@ -445,52 +446,40 @@ Paginated response containing:
 - `page`: Current page number
 - `totalPages`: Total number of pages available
 
-**Example Request (First Page):**
+**Example Request (latest trades, first page):**
 
 ```
-GET https://indexing.bounce.tech/user-trades?user=0x1234567890123456789012345678901234567890&limit=10
+GET https://indexing.bounce.tech/trades?limit=10
 ```
 
-**Example Request with Symbol Filter:**
+**Example Request with Asset Filter:**
 
 ```
-GET https://indexing.bounce.tech/user-trades?user=0x1234567890123456789012345678901234567890&targetAsset=ETH&limit=20
+GET https://indexing.bounce.tech/trades?targetAsset=ETH&limit=20
 ```
 
 **Example Request (Page 2):**
 
 ```
-GET https://indexing.bounce.tech/user-trades?user=0x1234567890123456789012345678901234567890&page=2&limit=10
+GET https://indexing.bounce.tech/trades?page=2&limit=10
 ```
 
 **Example Request with Both Filters:**
 
 ```
-GET https://indexing.bounce.tech/user-trades?user=0x1234567890123456789012345678901234567890&targetAsset=ETH&address=0x1eefbacfea06d786ce012c6fc861bec6c7a828c1
+GET https://indexing.bounce.tech/trades?targetAsset=ETH&address=0x1eefbacfea06d786ce012c6fc861bec6c7a828c1
 ```
 
 **Example Request with Custom Sorting (oldest first):**
 
 ```
-GET https://indexing.bounce.tech/user-trades?user=0x1234567890123456789012345678901234567890&sortBy=date&sortOrder=asc
+GET https://indexing.bounce.tech/trades?sortBy=date&sortOrder=asc
 ```
 
 **Example Request Sorted by Nominal Value (highest first):**
 
 ```
-GET https://indexing.bounce.tech/user-trades?user=0x1234567890123456789012345678901234567890&sortBy=nomVal&sortOrder=desc
-```
-
-**Example Request Sorted by PnL Amount (highest profit first):**
-
-```
-GET https://indexing.bounce.tech/user-trades?user=0x1234567890123456789012345678901234567890&sortBy=pnlAmount&sortOrder=desc
-```
-
-**Example Request Sorted by PnL Percentage (highest percent first):**
-
-```
-GET https://indexing.bounce.tech/user-trades?user=0x1234567890123456789012345678901234567890&sortBy=pnlPercent&sortOrder=desc
+GET https://indexing.bounce.tech/trades?sortBy=nomVal&sortOrder=desc
 ```
 
 **Example Success Response:**
@@ -508,6 +497,8 @@ GET https://indexing.bounce.tech/user-trades?user=0x1234567890123456789012345678
         "baseAssetAmount": "500000000",
         "leveragedTokenAmount": "2500000000000000000",
         "leveragedToken": "0x1eefbacfea06d786ce012c6fc861bec6c7a828c1",
+        "sender": "0x9876543210987654321098765432109876543210",
+        "recipient": "0x1234567890123456789012345678901234567890",
         "targetLeverage": 3,
         "isLong": true,
         "targetAsset": "ETH",
@@ -522,6 +513,118 @@ GET https://indexing.bounce.tech/user-trades?user=0x1234567890123456789012345678
         "baseAssetAmount": "1000000000",
         "leveragedTokenAmount": "5000000000000000000",
         "leveragedToken": "0x1eefbacfea06d786ce012c6fc861bec6c7a828c1",
+        "sender": "0x1234567890123456789012345678901234567890",
+        "recipient": "0x9876543210987654321098765432109876543210",
+        "targetLeverage": 3,
+        "isLong": true,
+        "targetAsset": "BTC",
+        "profitAmount": null,
+        "profitPercent": null
+      }
+    ],
+    "totalCount": 1234,
+    "page": 1,
+    "totalPages": 13
+  },
+  "error": null
+}
+```
+
+**Error Responses:**
+
+- `400 Bad Request`: Invalid address parameter, invalid page parameter (must be at least 1), invalid limit parameter (must be between 1 and 100), or invalid sort parameters (sortBy must be one of: date, targetAsset, activity, nomVal, pnlAmount, pnlPercent; sortOrder must be 'asc' or 'desc')
+- `500 Internal Server Error`: Failed to fetch trades
+
+### Trades by User
+
+Get all trades for a specific user with optional filtering by asset or leveraged token address. This is the same as the `/trades` endpoint but with an additional user filter applied via the path parameter.
+
+**Endpoint:** `GET https://indexing.bounce.tech/trades/:user`
+
+**Path Parameters:**
+
+- `user` (required): Ethereum address of the user
+
+**Query Parameters:**
+
+- `targetAsset` (optional): Filter trades by target asset (e.g. ETH, BTC)
+- `address` (optional): Filter trades by specific leveraged token address
+- `sortBy` (optional): Field to sort by. Values: `date`, `targetAsset`, `activity`, `nomVal`, `pnlAmount`, `pnlPercent`. Default: `date`
+- `sortOrder` (optional): Sort direction. Values: `asc` (ascending) or `desc` (descending). Default: `desc`
+- `page` (optional): Page number, starting from 1 (default: 1)
+- `limit` (optional): Number of items per page (default: 100, max: 100)
+
+**Note:** You can combine `targetAsset` and `address` filters. If both are provided, trades must match both conditions. Sorting and pagination work identically to the `/trades` endpoint.
+
+**Example Request (First Page):**
+
+```
+GET https://indexing.bounce.tech/trades/0x1234567890123456789012345678901234567890?limit=10
+```
+
+**Example Request with Asset Filter:**
+
+```
+GET https://indexing.bounce.tech/trades/0x1234567890123456789012345678901234567890?targetAsset=ETH&limit=20
+```
+
+**Example Request (Page 2):**
+
+```
+GET https://indexing.bounce.tech/trades/0x1234567890123456789012345678901234567890?page=2&limit=10
+```
+
+**Example Request with Both Filters:**
+
+```
+GET https://indexing.bounce.tech/trades/0x1234567890123456789012345678901234567890?targetAsset=ETH&address=0x1eefbacfea06d786ce012c6fc861bec6c7a828c1
+```
+
+**Example Request with Custom Sorting (oldest first):**
+
+```
+GET https://indexing.bounce.tech/trades/0x1234567890123456789012345678901234567890?sortBy=date&sortOrder=asc
+```
+
+**Example Request Sorted by PnL Amount (highest profit first):**
+
+```
+GET https://indexing.bounce.tech/trades/0x1234567890123456789012345678901234567890?sortBy=pnlAmount&sortOrder=desc
+```
+
+**Example Success Response:**
+
+```json
+{
+  "status": "success",
+  "data": {
+    "items": [
+      {
+        "id": "0xghi789...",
+        "txHash": "0xjkl012...",
+        "timestamp": "1704153600",
+        "isBuy": false,
+        "baseAssetAmount": "500000000",
+        "leveragedTokenAmount": "2500000000000000000",
+        "leveragedToken": "0x1eefbacfea06d786ce012c6fc861bec6c7a828c1",
+        "sender": "0x9876543210987654321098765432109876543210",
+        "recipient": "0x1234567890123456789012345678901234567890",
+        "targetLeverage": 3,
+        "isLong": true,
+        "targetAsset": "ETH",
+        "profitAmount": 50.0,
+        "profitPercent": 0.1
+      },
+      {
+        "id": "0xabc123...",
+        "txHash": "0xdef456...",
+        "timestamp": "1704067200",
+        "isBuy": true,
+        "baseAssetAmount": "1000000000",
+        "leveragedTokenAmount": "5000000000000000000",
+        "leveragedToken": "0x1eefbacfea06d786ce012c6fc861bec6c7a828c1",
+        "sender": "0x1234567890123456789012345678901234567890",
+        "recipient": "0x1234567890123456789012345678901234567890",
         "targetLeverage": 3,
         "isLong": true,
         "targetAsset": "BTC",
@@ -537,20 +640,10 @@ GET https://indexing.bounce.tech/user-trades?user=0x1234567890123456789012345678
 }
 ```
 
-**Example Error Response:**
-
-```json
-{
-  "status": "error",
-  "data": null,
-  "error": "Missing user parameter"
-}
-```
-
 **Error Responses:**
 
 - `400 Bad Request`: Missing or invalid user address parameter, invalid address parameter, invalid page parameter (must be at least 1), invalid limit parameter (must be between 1 and 100), or invalid sort parameters (sortBy must be one of: date, targetAsset, activity, nomVal, pnlAmount, pnlPercent; sortOrder must be 'asc' or 'desc')
-- `500 Internal Server Error`: Failed to fetch user trades
+- `500 Internal Server Error`: Failed to fetch trades
 
 ### User Referrals
 
@@ -677,175 +770,6 @@ GET https://indexing.bounce.tech/is-valid-code/ABC123
 
 - `400 Bad Request`: Missing code parameter
 - `500 Internal Server Error`: Failed to check referral code validity
-
-### Total Rebates (Deprecated)
-
-> **Deprecated:** Use [`/user-referrals/:user`](#user-referrals) instead. This endpoint will be removed in a future release.
-
-Get the total rebates earned by a user.
-
-**Endpoint:** `GET https://indexing.bounce.tech/total-rebates`
-
-**Query Parameters:**
-
-- `user` (required): Ethereum address of the user
-
-**Response Data:**
-
-- Number representing the total rebates earned by the user (includes both referrer and referee rebates, in base asset units)
-
-**Example Request:**
-
-```
-GET https://indexing.bounce.tech/total-rebates?user=0x1234567890123456789012345678901234567890
-```
-
-**Example Success Response:**
-
-```json
-{
-  "status": "success",
-  "data": 3.58269,
-  "error": null
-}
-```
-
-**Example Error Response:**
-
-```json
-{
-  "status": "error",
-  "data": null,
-  "error": "Missing user parameter"
-}
-```
-
-**Error Responses:**
-
-- `400 Bad Request`: Missing or invalid user address parameter
-- `500 Internal Server Error`: Failed to fetch total rebates
-
-### Total Referrals (Deprecated)
-
-> **Deprecated:** Use [`/user-referrals/:user`](#user-referrals) instead. This endpoint will be removed in a future release.
-
-Get the number of referrals a user has made.
-
-**Endpoint:** `GET https://indexing.bounce.tech/total-referrals`
-
-**Query Parameters:**
-
-- `user` (required): Ethereum address of the user
-
-**Response Data:**
-
-- Number representing the number of referrals a user has made
-
-**Example Request:**
-
-```
-GET https://indexing.bounce.tech/total-referrals?user=0x1234567890123456789012345678901234567890
-```
-
-**Example Success Response:**
-
-```json
-{
-  "status": "success",
-  "data": 3,
-  "error": null
-}
-```
-
-**Example Error Response:**
-
-```json
-{
-  "status": "error",
-  "data": null,
-  "error": "Missing user parameter"
-}
-```
-
-**Error Responses:**
-
-- `400 Bad Request`: Missing or invalid user address parameter
-- `500 Internal Server Error`: Failed to fetch total referrals
-
-### Latest Trades
-
-Get the latest trades across all users.
-
-**Endpoint:** `GET https://indexing.bounce.tech/latest-trades`
-
-**Query Parameters:** None
-
-**Response Data:**
-
-- Array of trade objects (up to 100), each containing:
-  - `id`: Unique trade identifier
-  - `txHash`: Transaction hash of the trade
-  - `timestamp`: Block timestamp of the trade (as string, serialized from BigInt)
-  - `isBuy`: `true` for mints (buys), `false` for redeems (sells)
-  - `baseAssetAmount`: Amount of USDC
-  - `leveragedTokenAmount`: Amount of leveraged tokens (as string, serialized from BigInt)
-  - `leveragedToken`: Address of the leveraged token
-  - `sender`: Address initiating the trade
-  - `recipient`: Address receiving the tokens
-  - `targetLeverage`: Target leverage of the leveraged token (as string, serialized from BigInt)
-  - `isLong`: Whether the leveraged token is a long position
-  - `asset`: Leveraged token target asset (e.g. BTC, ETH)
-
-Trades are ordered by timestamp descending (newest first).
-
-**Example Request:**
-
-```
-GET https://indexing.bounce.tech/latest-trades
-```
-
-**Example Success Response:**
-
-```json
-{
-  "status": "success",
-  "data": [
-    {
-      "id": "0xabc123...",
-      "txHash": "0xdef456...",
-      "timestamp": "1704067200",
-      "isBuy": true,
-      "baseAssetAmount": "1000000000",
-      "leveragedTokenAmount": "5000000000000000000",
-      "leveragedToken": "0x1eefbacfea06d786ce012c6fc861bec6c7a828c1",
-      "sender": "0x1234567890123456789012345678901234567890",
-      "recipient": "0x9876543210987654321098765432109876543210",
-      "targetLeverage": "3000000000000000000",
-      "isLong": true,
-      "asset": "USDC"
-    },
-    {
-      "id": "0xghi789...",
-      "txHash": "0xjkl012...",
-      "timestamp": "1704153600",
-      "isBuy": false,
-      "baseAssetAmount": "500000000",
-      "leveragedTokenAmount": "2500000000000000000",
-      "leveragedToken": "0x1eefbacfea06d786ce012c6fc861bec6c7a828c1",
-      "sender": "0x9876543210987654321098765432109876543210",
-      "recipient": "0x1234567890123456789012345678901234567890",
-      "targetLeverage": "3000000000000000000",
-      "isLong": true,
-      "asset": "USDC"
-    }
-  ],
-  "error": null
-}
-```
-
-**Error Responses:**
-
-- None (always returns success with an array, which may be empty if there are no trades)
 
 ### Trade by Transaction Hash
 
@@ -1207,3 +1131,203 @@ GET https://indexing.bounce.tech/leveraged-tokens/3L-USDC
 - `400 Bad Request`: Missing symbol parameter
 - `404 Not Found`: Leveraged token not found in the database
 - `500 Internal Server Error`: Failed to fetch leveraged token by symbol
+
+### Latest Trades (Deprecated)
+
+> **Deprecated:** Use [`/trades`](#trades) instead. This endpoint will be removed in a future release.
+
+Get the latest trades across all users.
+
+**Endpoint:** `GET https://indexing.bounce.tech/latest-trades`
+
+**Query Parameters:** None
+
+**Response Data:**
+
+- Array of trade objects (up to 100), each containing:
+  - `id`: Unique trade identifier
+  - `txHash`: Transaction hash of the trade
+  - `timestamp`: Block timestamp of the trade (as string, serialized from BigInt)
+  - `isBuy`: `true` for mints (buys), `false` for redeems (sells)
+  - `baseAssetAmount`: Amount of USDC
+  - `leveragedTokenAmount`: Amount of leveraged tokens (as string, serialized from BigInt)
+  - `leveragedToken`: Address of the leveraged token
+  - `sender`: Address initiating the trade
+  - `recipient`: Address receiving the tokens
+  - `targetLeverage`: Target leverage of the leveraged token (as string, serialized from BigInt)
+  - `isLong`: Whether the leveraged token is a long position
+  - `asset`: Leveraged token target asset (e.g. BTC, ETH)
+
+Trades are ordered by timestamp descending (newest first).
+
+**Example Request:**
+
+```
+GET https://indexing.bounce.tech/latest-trades
+```
+
+**Example Success Response:**
+
+```json
+{
+  "status": "success",
+  "data": [
+    {
+      "id": "0xabc123...",
+      "txHash": "0xdef456...",
+      "timestamp": "1704067200",
+      "isBuy": true,
+      "baseAssetAmount": "1000000000",
+      "leveragedTokenAmount": "5000000000000000000",
+      "leveragedToken": "0x1eefbacfea06d786ce012c6fc861bec6c7a828c1",
+      "sender": "0x1234567890123456789012345678901234567890",
+      "recipient": "0x9876543210987654321098765432109876543210",
+      "targetLeverage": "3000000000000000000",
+      "isLong": true,
+      "asset": "USDC"
+    },
+    {
+      "id": "0xghi789...",
+      "txHash": "0xjkl012...",
+      "timestamp": "1704153600",
+      "isBuy": false,
+      "baseAssetAmount": "500000000",
+      "leveragedTokenAmount": "2500000000000000000",
+      "leveragedToken": "0x1eefbacfea06d786ce012c6fc861bec6c7a828c1",
+      "sender": "0x9876543210987654321098765432109876543210",
+      "recipient": "0x1234567890123456789012345678901234567890",
+      "targetLeverage": "3000000000000000000",
+      "isLong": true,
+      "asset": "USDC"
+    }
+  ],
+  "error": null
+}
+```
+
+**Error Responses:**
+
+- None (always returns success with an array, which may be empty if there are no trades)
+
+### User Trades (Deprecated)
+
+> **Deprecated:** Use [`/trades/:user`](#trades-by-user) instead. This endpoint will be removed in a future release.
+
+Get all trades for a specific user with optional filtering by asset or leveraged token address.
+
+**Endpoint:** `GET https://indexing.bounce.tech/user-trades`
+
+**Query Parameters:**
+
+- `user` (required): Ethereum address of the user
+- `targetAsset` (optional): Filter trades by target asset (e.g. ETH, BTC)
+- `address` (optional): Filter trades by specific leveraged token address
+- `sortBy` (optional): Field to sort by. Values: `date`, `targetAsset`, `activity`, `nomVal`, `pnlAmount`, `pnlPercent`. Default: `date`
+- `sortOrder` (optional): Sort direction. Values: `asc` (ascending) or `desc` (descending). Default: `desc`
+- `page` (optional): Page number, starting from 1 (default: 1)
+- `limit` (optional): Number of items per page (default: 100, max: 100)
+
+**Example Request:**
+
+```
+GET https://indexing.bounce.tech/user-trades?user=0x1234567890123456789012345678901234567890&limit=10
+```
+
+**Error Responses:**
+
+- `400 Bad Request`: Missing or invalid user address parameter, invalid address parameter, invalid page parameter (must be at least 1), invalid limit parameter (must be between 1 and 100), or invalid sort parameters
+- `500 Internal Server Error`: Failed to fetch user trades
+
+### Total Rebates (Deprecated)
+
+> **Deprecated:** Use [`/user-referrals/:user`](#user-referrals) instead. This endpoint will be removed in a future release.
+
+Get the total rebates earned by a user.
+
+**Endpoint:** `GET https://indexing.bounce.tech/total-rebates`
+
+**Query Parameters:**
+
+- `user` (required): Ethereum address of the user
+
+**Response Data:**
+
+- Number representing the total rebates earned by the user (includes both referrer and referee rebates, in base asset units)
+
+**Example Request:**
+
+```
+GET https://indexing.bounce.tech/total-rebates?user=0x1234567890123456789012345678901234567890
+```
+
+**Example Success Response:**
+
+```json
+{
+  "status": "success",
+  "data": 3.58269,
+  "error": null
+}
+```
+
+**Example Error Response:**
+
+```json
+{
+  "status": "error",
+  "data": null,
+  "error": "Missing user parameter"
+}
+```
+
+**Error Responses:**
+
+- `400 Bad Request`: Missing or invalid user address parameter
+- `500 Internal Server Error`: Failed to fetch total rebates
+
+### Total Referrals (Deprecated)
+
+> **Deprecated:** Use [`/user-referrals/:user`](#user-referrals) instead. This endpoint will be removed in a future release.
+
+Get the number of referrals a user has made.
+
+**Endpoint:** `GET https://indexing.bounce.tech/total-referrals`
+
+**Query Parameters:**
+
+- `user` (required): Ethereum address of the user
+
+**Response Data:**
+
+- Number representing the number of referrals a user has made
+
+**Example Request:**
+
+```
+GET https://indexing.bounce.tech/total-referrals?user=0x1234567890123456789012345678901234567890
+```
+
+**Example Success Response:**
+
+```json
+{
+  "status": "success",
+  "data": 3,
+  "error": null
+}
+```
+
+**Example Error Response:**
+
+```json
+{
+  "status": "error",
+  "data": null,
+  "error": "Missing user parameter"
+}
+```
+
+**Error Responses:**
+
+- `400 Bad Request`: Missing or invalid user address parameter
+- `500 Internal Server Error`: Failed to fetch total referrals

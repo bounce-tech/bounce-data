@@ -10,6 +10,7 @@ import { bigIntSerializationMiddleware } from "./utils/serialize-bigint";
 import getTotalRebatesForUser from "./endpoints/total-rebates-for-user";
 import getTotalReferralsForUser from "./endpoints/total-referrals-for-user";
 import getLatestTrades from "./endpoints/latest-trades";
+import getTrades from "./endpoints/trades";
 import getAllUsers from "./endpoints/get-all-users";
 import getReferrers from "./endpoints/get-referrers";
 import getAllLeveragedTokens from "./endpoints/get-all-leveraged-tokens";
@@ -112,12 +113,11 @@ app.get("/portfolio/:user", async (c) => {
   }
 });
 
-// User's trades
-app.get("/user-trades", async (c) => {
+// Trades with pagination (optional user filter via path param)
+const handleTrades = async (c: any) => {
   try {
-    const user = c.req.query("user");
-    if (!user) return c.json(formatError("Missing user parameter"), 400);
-    if (!isAddress(user)) return c.json(formatError("Invalid user address"), 400);
+    const user = c.req.param("user");
+    if (user && !isAddress(user)) return c.json(formatError("Invalid user address"), 400);
     const targetAsset = c.req.query("targetAsset");
     const address = c.req.query("address");
     if (address && !isAddress(address)) return c.json(formatError("Invalid address parameter"), 400);
@@ -134,8 +134,8 @@ app.get("/user-trades", async (c) => {
 
     const parsedPage = page ? parseInt(page, 10) : undefined;
     const parsedLimit = limit ? parseInt(limit, 10) : undefined;
-    const trades = await getUsersTrades(
-      user,
+    const trades = await getTrades(
+      user || undefined,
       targetAsset,
       address as Address | undefined,
       parsedPage ?? 1,
@@ -147,9 +147,11 @@ app.get("/user-trades", async (c) => {
     );
     return c.json(formatSuccess(trades));
   } catch (error) {
-    return c.json(formatError("Failed to fetch user trades"), 500);
+    return c.json(formatError("Failed to fetch trades"), 500);
   }
-});
+};
+app.get("/trades", handleTrades);
+app.get("/trades/:user", handleTrades);
 
 // User referrals
 app.get("/user-referrals/:user", async (c) => {
@@ -173,16 +175,6 @@ app.get("/is-valid-code/:code", async (c) => {
     return c.json(formatSuccess(valid));
   } catch (error) {
     return c.json(formatError("Failed to check referral code validity"), 500);
-  }
-});
-
-// Latest trades endpoint
-app.get("/latest-trades", async (c) => {
-  try {
-    const trades = await getLatestTrades();
-    return c.json(formatSuccess(trades));
-  } catch (error) {
-    return c.json(formatError("Failed to fetch latest trades"), 500);
   }
 });
 
@@ -239,6 +231,55 @@ app.get("/leveraged-tokens/:symbol", async (c) => {
     return c.json(formatSuccess(leveragedToken));
   } catch (error) {
     return c.json(formatError("Failed to fetch leveraged token by symbol"), 500);
+  }
+});
+
+// Latest trades (deprecated, use /trades instead, will remove in the future)
+app.get("/latest-trades", async (c) => {
+  try {
+    const trades = await getLatestTrades();
+    return c.json(formatSuccess(trades));
+  } catch (error) {
+    return c.json(formatError("Failed to fetch latest trades"), 500);
+  }
+});
+
+// User's trades (deprecated, use /trades/:user instead, will remove in the future)
+app.get("/user-trades", async (c) => {
+  try {
+    const user = c.req.query("user");
+    if (!user) return c.json(formatError("Missing user parameter"), 400);
+    if (!isAddress(user)) return c.json(formatError("Invalid user address"), 400);
+    const targetAsset = c.req.query("targetAsset");
+    const address = c.req.query("address");
+    if (address && !isAddress(address)) return c.json(formatError("Invalid address parameter"), 400);
+    const page = c.req.query("page");
+    const limit = c.req.query("limit");
+    const paginationError = validateOffsetPaginationParams(page, limit);
+    if (paginationError) return c.json(formatError(paginationError), 400);
+
+    // Sort params
+    const sortBy = c.req.query("sortBy");
+    const sortOrder = c.req.query("sortOrder");
+    const sortError = validateSortParams(sortBy, sortOrder);
+    if (sortError) return c.json(formatError(sortError), 400);
+
+    const parsedPage = page ? parseInt(page, 10) : undefined;
+    const parsedLimit = limit ? parseInt(limit, 10) : undefined;
+    const trades = await getUsersTrades(
+      user,
+      targetAsset,
+      address as Address | undefined,
+      parsedPage ?? 1,
+      parsedLimit ?? 100,
+      {
+        sortBy: sortBy as SortField | undefined,
+        sortOrder: sortOrder as SortOrder | undefined,
+      }
+    );
+    return c.json(formatSuccess(trades));
+  } catch (error) {
+    return c.json(formatError("Failed to fetch user trades"), 500);
   }
 });
 
