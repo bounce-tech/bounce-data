@@ -214,65 +214,6 @@ ponder.on("LeveragedToken:CancelRedeem", async ({ event, context }) => {
   await context.db.delete(schema.pendingRedemption, { user: user, leveragedToken: event.log.address });
 });
 
-// event Transfer(address indexed from, address indexed to, uint256 value);
-ponder.on("LeveragedToken:Transfer", async ({ event, context }) => {
-  const { from, to, value } = event.args;
-  if (value === 0n || from === to) return;
-  const leveragedToken = event.log.address;
-
-  await context.db.insert(schema.transfer).values({
-    id: crypto.randomUUID(),
-    timestamp: event.block.timestamp,
-    leveragedToken: event.log.address,
-    sender: from,
-    recipient: to,
-    amount: value,
-    txHash: event.transaction?.hash ?? "",
-  });
-
-  if (addressMatch(to, FACTORY_ADDRESS)) return;
-
-  // Updating total supply
-  if (from === zeroAddress) {
-    await context.db.update(schema.leveragedToken, { address: leveragedToken }).set((row) => ({
-      totalSupply: row.totalSupply + value,
-    }));
-  } else if (to === zeroAddress) {
-    await context.db.update(schema.leveragedToken, { address: leveragedToken }).set((row) => ({
-      totalSupply: row.totalSupply - value,
-    }));
-  }
-
-
-  if (from !== zeroAddress) {
-    await ensureUser(context.db, from);
-    await ensureBalance(context.db, from, leveragedToken);
-    await context.db
-      .update(schema.balance, {
-        user: from,
-        leveragedToken,
-      })
-      .set((row) => ({
-        liquidBalance: row.liquidBalance - value,
-        totalBalance: row.totalBalance - value,
-      }));
-  }
-
-  if (to !== zeroAddress) {
-    await ensureUser(context.db, to);
-    await ensureBalance(context.db, to, leveragedToken);
-    await context.db
-      .update(schema.balance, {
-        user: to,
-        leveragedToken,
-      })
-      .set((row) => ({
-        liquidBalance: row.liquidBalance + value,
-        totalBalance: row.totalBalance + value,
-      }));
-  }
-});
-
 // event SendFeesToTreasury(uint256 amount);
 ponder.on("LeveragedToken:SendFeesToTreasury", async ({ event, context }) => {
   const { amount } = event.args;
