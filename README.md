@@ -1,6 +1,6 @@
 # Bounce Indexing API
 
-A REST API for querying data from the Bounce Tech leveraged token protocol on HyperEVM. This API provides access to leveraged token information, trades, portfolio data, referral statistics, protocol-wide metrics, fee chart data, and global storage configuration.
+A REST API for querying data from the Bounce Tech leveraged token protocol on HyperEVM. This API provides access to leveraged token information, user trades, portfolio data, referral statistics, protocol-wide metrics, fee chart data, active users chart data, and global storage configuration.
 
 **Base URL:** `https://indexing.bounce.tech`
 
@@ -147,6 +147,100 @@ GET https://indexing.bounce.tech/fee-chart
 **Error Responses:**
 
 - `500 Internal Server Error`: Failed to fetch fee chart data
+
+### Volume Chart
+
+Get cumulative notional volume aggregated per day. Each data point represents the running total of all notional trading volume up to and including that day. Notional volume is calculated as `baseAssetAmount * targetLeverage` for each trade. Useful for visualizing volume growth over time.
+
+**Endpoint:** `GET https://indexing.bounce.tech/volume-chart`
+
+**Query Parameters:** None
+
+**Response Data:**
+
+- Array of chart data points ordered by date ascending, each containing:
+  - `timestamp`: Start of day as Unix timestamp in milliseconds (number)
+  - `cumulativeVolume`: Running total of all notional volume up to and including this day (number, in base asset units)
+
+**Example Request:**
+
+```
+GET https://indexing.bounce.tech/volume-chart
+```
+
+**Example Success Response:**
+
+```json
+{
+  "status": "success",
+  "data": [
+    {
+      "timestamp": 1704067200000,
+      "cumulativeVolume": 50000.0
+    },
+    {
+      "timestamp": 1704153600000,
+      "cumulativeVolume": 125000.5
+    },
+    {
+      "timestamp": 1704240000000,
+      "cumulativeVolume": 310000.75
+    }
+  ],
+  "error": null
+}
+```
+
+**Error Responses:**
+
+- `500 Internal Server Error`: Failed to fetch volume chart data
+
+### Active Users Chart
+
+Get the number of active users per day. An active user is defined as someone who has traded at least $500 of notional volume within the last 7 days, or who currently has open positions worth $500 or more in aggregate. The chart provides one data point per day from the first trade to the current day, using a rolling 7 day window for the volume criteria. The current position value check is applied only to the latest data point (today), since historical position values cannot be computed from the current state.
+
+**Endpoint:** `GET https://indexing.bounce.tech/active-users-chart`
+
+**Query Parameters:** None
+
+**Response Data:**
+
+- Array of chart data points ordered by date ascending, each containing:
+  - `timestamp`: Start of day as Unix timestamp in milliseconds (number)
+  - `activeUsers`: Number of active users on that day (number)
+
+**Example Request:**
+
+```
+GET https://indexing.bounce.tech/active-users-chart
+```
+
+**Example Success Response:**
+
+```json
+{
+  "status": "success",
+  "data": [
+    {
+      "timestamp": 1704067200000,
+      "activeUsers": 12
+    },
+    {
+      "timestamp": 1704153600000,
+      "activeUsers": 18
+    },
+    {
+      "timestamp": 1704240000000,
+      "activeUsers": 25
+    }
+  ],
+  "error": null
+}
+```
+
+**Error Responses:**
+
+- `500 Internal Server Error`: Failed to fetch active users chart data
 
 ### Global Storage
 
