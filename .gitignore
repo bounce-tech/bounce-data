@@ -16,3 +16,6 @@ yarn-error.log*
 # Ponder
 /generated/
 /.ponder/
+
+# Auto-generated build file
+src/utils/build-block.ts

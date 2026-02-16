@@ -1,5 +1,5 @@
 import { createPublicClient, http } from "viem";
-import { readFileSync, writeFileSync } from "fs";
+import { writeFileSync } from "fs";
 import { join } from "path";
 import { fileURLToPath } from "url";
 import { dirname } from "path";
@@ -16,13 +16,9 @@ async function updateBuildBlock() {
     const blockNumber = await client.getBlockNumber();
     console.log(`Latest block number: ${blockNumber}`);
     const filePath = join(__dirname, "..", "src", "utils", "build-block.ts");
-    const fileContent = readFileSync(filePath, "utf-8");
-    const updatedContent = fileContent.replace(
-        /export const BUILD_BLOCK = \d+;/,
-        `export const BUILD_BLOCK = ${Number(blockNumber)};`
-    );
-    writeFileSync(filePath, updatedContent, "utf-8");
-    console.log(`Updated BUILD_BLOCK to ${Number(blockNumber)} in ${filePath}`);
+    const content = `// This file is auto-generated at build time. Do not edit or commit.\nexport const BUILD_BLOCK = ${Number(blockNumber)};\n`;
+    writeFileSync(filePath, content, "utf-8");
+    console.log(`Created BUILD_BLOCK = ${Number(blockNumber)} in ${filePath}`);
 }
 
 updateBuildBlock().catch((error) => {
