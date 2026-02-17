@@ -5,7 +5,8 @@
   "scripts": {
     "dev": "npm run update-build-block && ponder dev",
     "start": "npm run update-build-block && ponder start",
-    "start:railway": "npm run update-build-block && ponder start --schema $RAILWAY_DEPLOYMENT_ID",
+    "start:railway": "npm run update-build-block && npm run drop-schema && ponder start --schema $RAILWAY_DEPLOYMENT_ID",
+    "drop-schema": "tsx scripts/drop-schema.ts",
     "update-build-block": "tsx scripts/update-build-block.ts",
     "db": "ponder db",
     "codegen": "ponder codegen",
@@ -20,11 +21,13 @@
     "@bouncetech/contracts": "^1.4.4",
     "crypto": "^1.0.1",
     "hono": "^4.5.0",
+    "pg": "^8.18.0",
     "ponder": "^0.15.7",
     "viem": "^2.45.1"
   },
   "devDependencies": {
     "@types/node": "^20.10.0",
+    "@types/pg": "^8.16.0",
     "@vitest/ui": "^4.0.16",
     "eslint": "^8.54.0",
     "eslint-config-ponder": "^0.15.7",
