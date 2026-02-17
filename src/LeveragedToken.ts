@@ -32,15 +32,23 @@ ponder.on("LeveragedToken:Mint", async ({ event, context }) => {
   });
 
   // Update user stats
-  await ensureUser(context.db, to);
   const targetLeverage = await getTargetLeverage(
     context.db,
     leveragedToken
   );
   const notionalVolume = (baseAmount * targetLeverage) / BigInt(1e18);
   await context.db
-    .update(schema.user, { address: to })
-    .set((row) => ({
+    .insert(schema.user)
+    .values({
+      address: to,
+      tradeCount: 1,
+      mintVolumeNominal: baseAmount,
+      totalVolumeNominal: baseAmount,
+      mintVolumeNotional: notionalVolume,
+      totalVolumeNotional: notionalVolume,
+      lastTradeTimestamp: event.block.timestamp,
+    })
+    .onConflictDoUpdate((row) => ({
       tradeCount: row.tradeCount + 1,
       mintVolumeNominal: row.mintVolumeNominal + baseAmount,
       totalVolumeNominal: row.totalVolumeNominal + baseAmount,
@@ -48,10 +56,12 @@ ponder.on("LeveragedToken:Mint", async ({ event, context }) => {
       totalVolumeNotional: row.totalVolumeNotional + notionalVolume,
       lastTradeTimestamp: event.block.timestamp,
     }));
-  await ensureBalance(context.db, to, leveragedToken);
-  await context.db.update(schema.balance, { user: to, leveragedToken }).set((row) => ({
-    purchaseCost: row.purchaseCost + baseAmount,
-  }));
+  await context.db
+    .insert(schema.balance)
+    .values({ user: to, leveragedToken, purchaseCost: baseAmount })
+    .onConflictDoUpdate((row) => ({
+      purchaseCost: row.purchaseCost + baseAmount,
+    }));
 });
 
 // event Redeem(address indexed sender, address indexed to, uint256 ltAmount, uint256 baseAmount);
@@ -95,15 +105,24 @@ ponder.on("LeveragedToken:Redeem", async ({ event, context }) => {
   });
 
   // Update user stats
-  await ensureUser(context.db, to);
   const targetLeverage = await getTargetLeverage(
     context.db,
     leveragedToken
   );
   const notionalVolume = (baseAmount * targetLeverage) / BigInt(1e18);
   await context.db
-    .update(schema.user, { address: to })
-    .set((row) => ({
+    .insert(schema.user)
+    .values({
+      address: to,
+      tradeCount: 1,
+      redeemVolumeNominal: baseAmount,
+      totalVolumeNominal: baseAmount,
+      redeemVolumeNotional: notionalVolume,
+      totalVolumeNotional: notionalVolume,
+      lastTradeTimestamp: event.block.timestamp,
+      realizedProfit: profit,
+    })
+    .onConflictDoUpdate((row) => ({
       tradeCount: row.tradeCount + 1,
       redeemVolumeNominal: row.redeemVolumeNominal + baseAmount,
       totalVolumeNominal: row.totalVolumeNominal + baseAmount,
@@ -120,11 +139,13 @@ ponder.on("LeveragedToken:PrepareRedeem", async ({ event, context }) => {
   const leveragedToken = event.log.address;
 
   await ensureUser(context.db, sender);
-  await ensureBalance(context.db, sender, leveragedToken);
-  await context.db.update(schema.balance, { user: sender, leveragedToken }).set((row) => ({
-    creditBalance: row.creditBalance + ltAmount,
-    totalBalance: row.totalBalance + ltAmount,
-  }));
+  await context.db
+    .insert(schema.balance)
+    .values({ user: sender, leveragedToken, creditBalance: ltAmount, totalBalance: ltAmount })
+    .onConflictDoUpdate((row) => ({
+      creditBalance: row.creditBalance + ltAmount,
+      totalBalance: row.totalBalance + ltAmount,
+    }));
   await context.db.insert(schema.pendingRedemption).values({
     user: sender,
     leveragedToken,
@@ -178,20 +199,31 @@ ponder.on("LeveragedToken:ExecuteRedeem", async ({ event, context }) => {
   });
 
   // Update user stats
-  await ensureUser(context.db, user);
   const targetLeverage = await getTargetLeverage(
     context.db,
     event.log.address
   );
   const notionalVolume = (baseAmount * targetLeverage) / BigInt(1e18);
-  await ensureBalance(context.db, user, event.log.address);
-  await context.db.update(schema.balance, { user: user, leveragedToken: event.log.address }).set((row) => ({
-    creditBalance: row.creditBalance - ltAmount,
-    totalBalance: row.totalBalance - ltAmount,
-  }));
   await context.db
-    .update(schema.user, { address: user })
-    .set((row) => ({
+    .insert(schema.balance)
+    .values({ user, leveragedToken: event.log.address, creditBalance: -ltAmount, totalBalance: -ltAmount })
+    .onConflictDoUpdate((row) => ({
+      creditBalance: row.creditBalance - ltAmount,
+      totalBalance: row.totalBalance - ltAmount,
+    }));
+  await context.db
+    .insert(schema.user)
+    .values({
+      address: user,
+      tradeCount: 1,
+      redeemVolumeNominal: baseAmount,
+      totalVolumeNominal: baseAmount,
+      redeemVolumeNotional: notionalVolume,
+      totalVolumeNotional: notionalVolume,
+      lastTradeTimestamp: event.block.timestamp,
+      realizedProfit: profit,
+    })
+    .onConflictDoUpdate((row) => ({
       tradeCount: row.tradeCount + 1,
       redeemVolumeNominal: row.redeemVolumeNominal + baseAmount,
       totalVolumeNominal: row.totalVolumeNominal + baseAmount,
@@ -206,11 +238,13 @@ ponder.on("LeveragedToken:ExecuteRedeem", async ({ event, context }) => {
 ponder.on("LeveragedToken:CancelRedeem", async ({ event, context }) => {
   const { user, credit } = event.args;
   await ensureUser(context.db, user);
-  await ensureBalance(context.db, user, event.log.address);
-  await context.db.update(schema.balance, { user: user, leveragedToken: event.log.address }).set((row) => ({
-    creditBalance: row.creditBalance - credit,
-    totalBalance: row.totalBalance - credit,
-  }));
+  await context.db
+    .insert(schema.balance)
+    .values({ user, leveragedToken: event.log.address, creditBalance: -credit, totalBalance: -credit })
+    .onConflictDoUpdate((row) => ({
+      creditBalance: row.creditBalance - credit,
+      totalBalance: row.totalBalance - credit,
+    }));
   await context.db.delete(schema.pendingRedemption, { user: user, leveragedToken: event.log.address });
 });
 
@@ -236,13 +270,10 @@ ponder.on("LeveragedToken:Transfer", async ({ event, context }) => {
 
   if (from !== zeroAddress) {
     await ensureUser(context.db, from);
-    await ensureBalance(context.db, from, leveragedToken);
     await context.db
-      .update(schema.balance, {
-        user: from,
-        leveragedToken,
-      })
-      .set((row) => ({
+      .insert(schema.balance)
+      .values({ user: from, leveragedToken, liquidBalance: -value, totalBalance: -value })
+      .onConflictDoUpdate((row) => ({
         liquidBalance: row.liquidBalance - value,
         totalBalance: row.totalBalance - value,
       }));
@@ -250,13 +281,10 @@ ponder.on("LeveragedToken:Transfer", async ({ event, context }) => {
 
   if (to !== zeroAddress) {
     await ensureUser(context.db, to);
-    await ensureBalance(context.db, to, leveragedToken);
     await context.db
-      .update(schema.balance, {
-        user: to,
-        leveragedToken,
-      })
-      .set((row) => ({
+      .insert(schema.balance)
+      .values({ user: to, leveragedToken, liquidBalance: value, totalBalance: value })
+      .onConflictDoUpdate((row) => ({
         liquidBalance: row.liquidBalance + value,
         totalBalance: row.totalBalance + value,
       }));
