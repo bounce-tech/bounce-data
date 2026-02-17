@@ -14,18 +14,22 @@ const publicClient = createPublicClient({
 });
 
 ponder.on("PerBlockUpdate:block", async ({ event, context }) => {
-  const data = await publicClient.readContract({
-    abi: LEVERAGED_TOKEN_HELPER_ABI,
-    address: LEVERAGED_TOKEN_HELPER_ADDRESS,
-    functionName: "getExchangeRates",
-  });
-  await Promise.all(
-    data.map((item) =>
-      context.db
-        .update(schema.leveragedToken, { address: item.leveragedTokenAddress })
-        .set(() => ({
-          exchangeRate: item.exchangeRate,
-        }))
-    )
-  );
+  try {
+    const data = await publicClient.readContract({
+      abi: LEVERAGED_TOKEN_HELPER_ABI,
+      address: LEVERAGED_TOKEN_HELPER_ADDRESS,
+      functionName: "getExchangeRates",
+    });
+    await Promise.all(
+      data.map((item) =>
+        context.db
+          .update(schema.leveragedToken, { address: item.leveragedTokenAddress })
+          .set(() => ({
+            exchangeRate: item.exchangeRate,
+          }))
+      )
+    );
+  } catch (error) {
+    console.error("Error updating exchange rates:", error);
+  }
 });
