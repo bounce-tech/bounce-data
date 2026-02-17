@@ -1,20 +1,26 @@
-import { onchainTable, relations, primaryKey } from "ponder";
+import { onchainTable, relations, primaryKey, index } from "ponder";
 import { zeroAddress } from "viem";
 
-export const leveragedToken = onchainTable("leveragedToken", (t) => ({
-  address: t.hex().primaryKey(),
-  creator: t.hex().notNull(),
-  marketId: t.integer().notNull(),
-  targetLeverage: t.bigint().notNull(),
-  isLong: t.boolean().notNull(),
-  symbol: t.text().notNull(),
-  name: t.text().notNull(),
-  decimals: t.integer().notNull(),
-  mintPaused: t.boolean().notNull().default(false),
-  targetAsset: t.text().notNull(),
-  exchangeRate: t.bigint().notNull().default(0n),
-  totalSupply: t.bigint().notNull().default(0n),
-}));
+export const leveragedToken = onchainTable(
+  "leveragedToken",
+  (t) => ({
+    address: t.hex().primaryKey(),
+    creator: t.hex().notNull(),
+    marketId: t.integer().notNull(),
+    targetLeverage: t.bigint().notNull(),
+    isLong: t.boolean().notNull(),
+    symbol: t.text().notNull(),
+    name: t.text().notNull(),
+    decimals: t.integer().notNull(),
+    mintPaused: t.boolean().notNull().default(false),
+    targetAsset: t.text().notNull(),
+    exchangeRate: t.bigint().notNull().default(0n),
+    totalSupply: t.bigint().notNull().default(0n),
+  }),
+  (table) => ({
+    symbolIdx: index().on(table.symbol),
+  })
+);
 
 export const pendingRedemption = onchainTable(
   "pendingRedemption",
@@ -28,49 +34,70 @@ export const pendingRedemption = onchainTable(
   })
 );
 
-export const trade = onchainTable("trade", (t) => ({
-  id: t.text().primaryKey(),
-  isBuy: t.boolean().notNull(),
-  leveragedToken: t.hex().notNull(),
-  timestamp: t.bigint().notNull(),
-  sender: t.hex().notNull(),
-  recipient: t.hex().notNull(),
-  baseAssetAmount: t.bigint().notNull(),
-  leveragedTokenAmount: t.bigint().notNull(),
-  profitAmount: t.bigint(),
-  profitPercent: t.bigint(),
-  originTxHash: t.hex().notNull(),
-  txHash: t.hex().notNull(),
-}));
+export const trade = onchainTable(
+  "trade",
+  (t) => ({
+    id: t.text().primaryKey(),
+    isBuy: t.boolean().notNull(),
+    leveragedToken: t.hex().notNull(),
+    timestamp: t.bigint().notNull(),
+    sender: t.hex().notNull(),
+    recipient: t.hex().notNull(),
+    baseAssetAmount: t.bigint().notNull(),
+    leveragedTokenAmount: t.bigint().notNull(),
+    profitAmount: t.bigint(),
+    profitPercent: t.bigint(),
+    originTxHash: t.hex().notNull(),
+    txHash: t.hex().notNull(),
+  }),
+  (table) => ({
+    recipientIdx: index().on(table.recipient),
+    leveragedTokenIdx: index().on(table.leveragedToken),
+    timestampIdx: index().on(table.timestamp),
+    originTxHashIdx: index().on(table.originTxHash),
+  })
+);
 
-export const user = onchainTable("user", (t) => ({
-  address: t.hex().notNull().primaryKey(),
-  referralCode: t.text(),
-  referrerCode: t.text(),
-  referrerAddress: t.hex(),
-  referredUserCount: t.integer().notNull().default(0),
-  totalRebates: t.bigint().notNull().default(0n),
-  referrerRebates: t.bigint().notNull().default(0n),
-  refereeRebates: t.bigint().notNull().default(0n),
-  claimedRebates: t.bigint().notNull().default(0n),
-  tradeCount: t.integer().notNull().default(0),
-  mintVolumeNominal: t.bigint().notNull().default(0n),
-  redeemVolumeNominal: t.bigint().notNull().default(0n),
-  totalVolumeNominal: t.bigint().notNull().default(0n),
-  mintVolumeNotional: t.bigint().notNull().default(0n),
-  redeemVolumeNotional: t.bigint().notNull().default(0n),
-  totalVolumeNotional: t.bigint().notNull().default(0n),
-  lastTradeTimestamp: t.bigint().notNull().default(0n),
-  realizedProfit: t.bigint().notNull().default(0n),
-}));
+export const user = onchainTable(
+  "user",
+  (t) => ({
+    address: t.hex().notNull().primaryKey(),
+    referralCode: t.text(),
+    referrerCode: t.text(),
+    referrerAddress: t.hex(),
+    referredUserCount: t.integer().notNull().default(0),
+    totalRebates: t.bigint().notNull().default(0n),
+    referrerRebates: t.bigint().notNull().default(0n),
+    refereeRebates: t.bigint().notNull().default(0n),
+    claimedRebates: t.bigint().notNull().default(0n),
+    tradeCount: t.integer().notNull().default(0),
+    mintVolumeNominal: t.bigint().notNull().default(0n),
+    redeemVolumeNominal: t.bigint().notNull().default(0n),
+    totalVolumeNominal: t.bigint().notNull().default(0n),
+    mintVolumeNotional: t.bigint().notNull().default(0n),
+    redeemVolumeNotional: t.bigint().notNull().default(0n),
+    totalVolumeNotional: t.bigint().notNull().default(0n),
+    lastTradeTimestamp: t.bigint().notNull().default(0n),
+    realizedProfit: t.bigint().notNull().default(0n),
+  }),
+  (table) => ({
+    referralCodeIdx: index().on(table.referralCode),
+  })
+);
 
-export const fee = onchainTable("fee", (t) => ({
-  id: t.text().primaryKey(),
-  leveragedToken: t.hex().notNull(),
-  timestamp: t.bigint().notNull(),
-  amount: t.bigint().notNull(),
-  destination: t.text().notNull(),
-}));
+export const fee = onchainTable(
+  "fee",
+  (t) => ({
+    id: t.text().primaryKey(),
+    leveragedToken: t.hex().notNull(),
+    timestamp: t.bigint().notNull(),
+    amount: t.bigint().notNull(),
+    destination: t.text().notNull(),
+  }),
+  (table) => ({
+    timestampIdx: index().on(table.timestamp),
+  })
+);
 
 export const globalStorage = onchainTable("globalStorage", (t) => ({
   id: t.text().primaryKey(),
@@ -99,6 +126,7 @@ export const balance = onchainTable(
   }),
   (table) => ({
     pk: primaryKey({ columns: [table.user, table.leveragedToken] }),
+    leveragedTokenIdx: index().on(table.leveragedToken),
   })
 );
 
