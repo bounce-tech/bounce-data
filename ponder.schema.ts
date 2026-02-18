@@ -16,6 +16,7 @@ export const leveragedToken = onchainTable(
     targetAsset: t.text().notNull(),
     exchangeRate: t.bigint().notNull().default(0n),
     totalSupply: t.bigint().notNull().default(0n),
+    latestBridgeFromPerpBlock: t.bigint().notNull().default(0n),
   }),
   (table) => ({
     symbolIdx: index().on(table.symbol),
