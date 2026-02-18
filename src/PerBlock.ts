@@ -4,7 +4,6 @@ import { hyperEvm } from "viem/chains";
 import schema from "ponder:schema";
 import { createPublicClient, http } from "viem";
 import { gte } from "ponder";
-import { db } from "ponder:api";
 import addressMatch from "./utils/address-match";
 
 const BRIDGE_FROM_PERP_THRESHOLD = 1n;
@@ -25,7 +24,7 @@ ponder.on("PerBlockUpdate:block", async ({ event, context }) => {
       abi: LEVERAGED_TOKEN_HELPER_ABI,
       address: LEVERAGED_TOKEN_HELPER_ADDRESS,
       functionName: "getExchangeRates",
-    }), db.select({
+    }), context.db.sql.select({
       leveragedTokenAddress: schema.leveragedToken.address,
     }).from(schema.leveragedToken).where(
       gte(schema.leveragedToken.latestBridgeFromPerpBlock, blockNumber - BRIDGE_FROM_PERP_THRESHOLD)
