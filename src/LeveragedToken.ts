@@ -312,3 +312,11 @@ ponder.on("LeveragedToken:SetMintPaused", async ({ event, context }) => {
     mintPaused,
   });
 });
+
+// event BridgeFromPerp(address indexed sender, uint256 amount);
+ponder.on("LeveragedToken:BridgeFromPerp", async ({ event, context }) => {
+  const leveragedToken = event.log.address;
+  await context.db.update(schema.leveragedToken, { address: leveragedToken }).set({
+    latestBridgeFromPerpBlock: event.block.number,
+  });
+});
