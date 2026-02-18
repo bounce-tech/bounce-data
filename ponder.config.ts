@@ -9,7 +9,6 @@ import {
   GLOBAL_STORAGE_ADDRESS,
   REFERRALS_ADDRESS,
 } from "@bouncetech/contracts";
-import { BUILD_BLOCK } from "./src/utils/build-block";
 
 const startBlock = 21549398;
 
@@ -24,7 +23,7 @@ export default createConfig({
     PerBlockUpdate: {
       chain: "hyperEvm",
       interval: 1,
-      startBlock: BUILD_BLOCK,
+      startBlock: "latest",
     }
   },
   contracts: {
