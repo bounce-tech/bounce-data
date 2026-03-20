@@ -177,6 +177,14 @@ export const balancesRelations = relations(balance, ({ one }) => ({
   }),
 }));
 
+export const hlVaultVolume = onchainTable("hlVaultVolume", (t) => ({
+  address: t.hex().primaryKey(),
+  hlVolume: t.bigint().notNull().default(0n),
+  hlFills: t.integer().notNull().default(0),
+  hlFees: t.bigint().notNull().default(0n),
+  updatedAt: t.bigint().notNull().default(0n),
+}));
+
 export const usersRelations = relations(user, ({ many }) => ({
   balances: many(balance),
   pendingRedemptions: many(pendingRedemption),

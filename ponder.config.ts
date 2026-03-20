@@ -24,7 +24,12 @@ export default createConfig({
       chain: "hyperEvm",
       interval: 1,
       startBlock: "latest",
-    }
+    },
+    HlVolumeUpdate: {
+      chain: "hyperEvm",
+      interval: 3600,
+      startBlock: "latest",
+    },
   },
   contracts: {
     LeveragedToken: {
