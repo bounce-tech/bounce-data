@@ -182,6 +182,7 @@ export const hlVaultVolume = onchainTable("hlVaultVolume", (t) => ({
   hlVolume: t.bigint().notNull().default(0n),
   hlFills: t.integer().notNull().default(0),
   hlFees: t.bigint().notNull().default(0n),
+  lastFillTime: t.bigint().notNull().default(0n),
   updatedAt: t.bigint().notNull().default(0n),
 }));
 

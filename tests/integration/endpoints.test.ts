@@ -634,6 +634,7 @@ describe("GET /portfolio/:user", () => {
         unrealizedPercent: number;
       }[];
       pnlChart: { timestamp: number; value: number }[];
+      estimatedHlVolume: { bounceNotional: number; attributedHl: number };
     }>(`/portfolio/${KNOWN_USER_ADDRESS}`);
     assertSuccessEnvelope(json);
 
@@ -642,6 +643,7 @@ describe("GET /portfolio/:user", () => {
     expect(data).toHaveProperty("realizedProfit");
     expect(data).toHaveProperty("leveragedTokens");
     expect(data).toHaveProperty("pnlChart");
+    expect(data).toHaveProperty("estimatedHlVolume");
 
     assertReasonableNumber(data.unrealizedProfit, "unrealizedProfit");
     assertReasonableNumber(data.realizedProfit, "realizedProfit");
@@ -660,16 +662,26 @@ describe("GET /portfolio/:user", () => {
       assertValidTimestamp(point.timestamp, "pnlChart timestamp");
       assertReasonableNumber(point.value, "pnlChart value");
     }
+
+    // Estimated HL volume attribution
+    expect(typeof data.estimatedHlVolume.bounceNotional).toBe("number");
+    expect(typeof data.estimatedHlVolume.attributedHl).toBe("number");
+    assertReasonableNumber(data.estimatedHlVolume.bounceNotional, "estimatedHlVolume.bounceNotional");
+    assertReasonableNumber(data.estimatedHlVolume.attributedHl, "estimatedHlVolume.attributedHl");
+    expect(data.estimatedHlVolume.bounceNotional).toBeGreaterThanOrEqual(0);
+    expect(data.estimatedHlVolume.attributedHl).toBeGreaterThanOrEqual(0);
   });
 
   it("returns empty portfolio for unknown user", async () => {
     const json = await fetchEndpoint<{
       leveragedTokens: unknown[];
       pnlChart: unknown[];
+      estimatedHlVolume: { bounceNotional: number; attributedHl: number };
     }>("/portfolio/0x0000000000000000000000000000000000000001");
     assertSuccessEnvelope(json);
     expect(json.data.leveragedTokens).toEqual([]);
     expect(json.data.pnlChart).toEqual([]);
+    expect(json.data.estimatedHlVolume).toEqual({ bounceNotional: 0, attributedHl: 0 });
   });
 
   it("returns error for invalid address", async () => {

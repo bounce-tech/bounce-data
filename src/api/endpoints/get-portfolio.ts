@@ -19,7 +19,7 @@ interface PnlChart {
   value: number;
 }
 
-interface HlVolume {
+interface EstimatedHlVolume {
   bounceNotional: number;
   attributedHl: number;
 }
@@ -29,7 +29,7 @@ interface Portfolio {
   realizedProfit: number;
   leveragedTokens: LeveragedToken[];
   pnlChart: PnlChart[];
-  hlVolume: HlVolume;
+  estimatedHlVolume: EstimatedHlVolume;
 }
 
 const getPortfolio = async (user: Address): Promise<Portfolio> => {
@@ -100,15 +100,14 @@ const getPortfolio = async (user: Address): Promise<Portfolio> => {
       value: bigIntToNumber(chart.value, 6),
     }));
 
-    // HL volume attribution
-    const hlVolume = await getHlVolumeAttribution(user);
+    const estimatedHlVolume = await getEstimatedHlVolume(user);
 
     const portfolio: Portfolio = {
       realizedProfit: totalRealized,
       unrealizedProfit: totalUnrealized,
       leveragedTokens: leveragedTokensWithBalances,
       pnlChart,
-      hlVolume,
+      estimatedHlVolume,
     };
     return portfolio;
   } catch (error) {
@@ -116,53 +115,45 @@ const getPortfolio = async (user: Address): Promise<Portfolio> => {
   }
 };
 
-async function getHlVolumeAttribution(user: Address): Promise<HlVolume> {
+const getEstimatedHlVolume = async (user: Address): Promise<EstimatedHlVolume> => {
   try {
-    const userVolumes = await db
-      .select({
-        leveragedToken: schema.trade.leveragedToken,
-        totalBase: sql<string>`sum(${schema.trade.baseAssetAmount})`,
-      })
-      .from(schema.trade)
-      .where(eq(schema.trade.recipient, user))
-      .groupBy(schema.trade.leveragedToken);
+    const [userVolumes, totalVolumes, hlVaults, leverages] = await Promise.all([
+      db
+        .select({
+          leveragedToken: schema.trade.leveragedToken,
+          totalBase: sql<string>`sum(${schema.trade.baseAssetAmount})`,
+        })
+        .from(schema.trade)
+        .where(eq(schema.trade.recipient, user))
+        .groupBy(schema.trade.leveragedToken),
+      db
+        .select({
+          leveragedToken: schema.trade.leveragedToken,
+          totalBase: sql<string>`sum(${schema.trade.baseAssetAmount})`,
+        })
+        .from(schema.trade)
+        .groupBy(schema.trade.leveragedToken),
+      db
+        .select({
+          address: schema.hlVaultVolume.address,
+          hlVolume: schema.hlVaultVolume.hlVolume,
+        })
+        .from(schema.hlVaultVolume),
+      db
+        .select({
+          address: schema.leveragedToken.address,
+          targetLeverage: schema.leveragedToken.targetLeverage,
+        })
+        .from(schema.leveragedToken),
+    ]);
 
-    if (userVolumes.length === 0) {
-      return { bounceNotional: 0, attributedHl: 0 };
-    }
-
-    const totalVolumes = await db
-      .select({
-        leveragedToken: schema.trade.leveragedToken,
-        totalBase: sql<string>`sum(${schema.trade.baseAssetAmount})`,
-      })
-      .from(schema.trade)
-      .groupBy(schema.trade.leveragedToken);
-
-    // Cached HL vault volumes
-    const hlVaults = await db
-      .select({
-        address: schema.hlVaultVolume.address,
-        hlVolume: schema.hlVaultVolume.hlVolume,
-      })
-      .from(schema.hlVaultVolume);
+    if (userVolumes.length === 0) return { bounceNotional: 0, attributedHl: 0 };
 
     const totalByToken = new Map(
       totalVolumes.map((v) => [v.leveragedToken, BigInt(v.totalBase ?? "0")])
     );
-    const hlByToken = new Map(
-      hlVaults.map((v) => [v.address, v.hlVolume])
-    );
-
-    const leverages = await db
-      .select({
-        address: schema.leveragedToken.address,
-        targetLeverage: schema.leveragedToken.targetLeverage,
-      })
-      .from(schema.leveragedToken);
-    const leverageByToken = new Map(
-      leverages.map((l) => [l.address, l.targetLeverage])
-    );
+    const hlByToken = new Map(hlVaults.map((v) => [v.address, v.hlVolume]));
+    const leverageByToken = new Map(leverages.map((l) => [l.address, l.targetLeverage]));
 
     let userBounceNotional = 0n;
     let userAttributedHl = 0n;
@@ -170,14 +161,12 @@ async function getHlVolumeAttribution(user: Address): Promise<HlVolume> {
     for (const uv of userVolumes) {
       const userBase = BigInt(uv.totalBase ?? "0");
       const leverage = leverageByToken.get(uv.leveragedToken) ?? 1n;
-      const userNotional = (userBase * leverage) / BigInt(1e18);
-      userBounceNotional += userNotional;
+      userBounceNotional += (userBase * leverage) / BigInt(1e18);
 
       const tokenTotal = totalByToken.get(uv.leveragedToken);
       const tokenHl = hlByToken.get(uv.leveragedToken);
       if (!tokenTotal || tokenTotal === 0n || !tokenHl) continue;
 
-      // share = userBase / totalBase, attributed = share * hlVolume
       userAttributedHl += (userBase * tokenHl) / tokenTotal;
     }
 
@@ -186,9 +175,9 @@ async function getHlVolumeAttribution(user: Address): Promise<HlVolume> {
       attributedHl: bigIntToNumber(userAttributedHl, 6),
     };
   } catch (error) {
-    console.error("[Portfolio] Error computing HL volume attribution:", error);
+    console.error("[Portfolio] Error computing estimated HL volume:", error);
     return { bounceNotional: 0, attributedHl: 0 };
   }
-}
+};
 
 export default getPortfolio;

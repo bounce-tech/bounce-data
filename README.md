@@ -1,6 +1,6 @@
 # Bounce Indexing API
 
-A REST API for querying data from the Bounce Tech leveraged token protocol on HyperEVM. This API provides access to leveraged token information, user trades, portfolio data, referral statistics, protocol-wide metrics, fee chart data, active users chart data, and global storage configuration.
+A REST API for querying data from the Bounce Tech leveraged token protocol on HyperEVM. This API provides access to leveraged token information, user trades, portfolio data (including estimated Hyperliquid volume attribution), referral statistics, protocol-wide metrics, fee chart data, active users chart data, and global storage configuration.
 
 **Base URL:** `https://indexing.bounce.tech`
 
@@ -330,6 +330,11 @@ Get portfolio data for a user including balances, unrealized profit, and realize
   The chart includes:
   - Historical points: Cumulative realized PnL from sell/redeem trades (all trades with realized profit or loss are included, ordered by timestamp ascending)
   - Latest point: Current total PnL (realized + unrealized) with timestamp of now
+- `estimatedHlVolume`: Estimated Hyperliquid volume attribution for this user. This represents the user's proportional share of HL vault trading volume based on their Bounce trading activity. Contains:
+  - `bounceNotional`: User's total notional volume on Bounce across all leveraged tokens (number, in USDC)
+  - `attributedHl`: Estimated HL vault volume attributed to this user, calculated as `(userVolume / totalVolume) * hlVaultVolume` per token (number, in USDC)
+
+  **Note:** These values are estimates. HL vault volume is cached and refreshed approximately every hour. The attribution is proportional — a user who represents 10% of Bounce volume for a given token is attributed 10% of that token's HL vault volume.
 
 **Example Request:**
 
@@ -374,7 +379,11 @@ GET https://indexing.bounce.tech/portfolio/0x12345678901234567890123456789012345
         "timestamp": 1704240000000,
         "value": 1802.45
       }
-    ]
+    ],
+    "estimatedHlVolume": {
+      "bounceNotional": 5000.0,
+      "attributedHl": 12500.0
+    }
   },
   "error": null
 }
