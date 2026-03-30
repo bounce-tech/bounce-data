@@ -61,6 +61,7 @@ export default createConfig({
         "0x4f22EaD4a6eFe62F03952b43710ed82ddD7c8eb9",
         "0xF96a7bD99F20C19f3a9AF2F7BA236bb720900968",
         "0xab94cdEb70349F15833B5A36dfC1d622b0ff3B63",
+        "0xBF8A077C425754e88D5F7A2E1c24dE89891D21c5",
       ],
       startBlock,
     },
