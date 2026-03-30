@@ -41,8 +41,9 @@ jobs:
         uses: actions/cache/restore@v4
         with:
           path: .ponder
-          key: ponder-cache-${{ github.run_id }}
+          key: ponder-cache-${{ github.run_id }}-${{ github.run_attempt }}
           restore-keys: |
+            ponder-cache-${{ github.run_id }}-
             ponder-cache-
 
       - name: Start indexer
@@ -71,4 +72,4 @@ jobs:
         uses: actions/cache/save@v4
         with:
           path: .ponder
-          key: ponder-cache-${{ github.run_id }}
+          key: ponder-cache-${{ github.run_id }}-${{ github.run_attempt }}
