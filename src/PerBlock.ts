@@ -6,7 +6,7 @@ import { createPublicClient, http } from "viem";
 import { gte } from "ponder";
 import addressMatch from "./utils/address-match";
 
-const BRIDGE_FROM_PERP_THRESHOLD = 1n;
+const BRIDGE_TO_EVM_THRESHOLD = 1n;
 
 // We are using our own client here instead of the ponder context.client
 // This is because we need to always query latest block
@@ -20,19 +20,19 @@ const publicClient = createPublicClient({
 ponder.on("PerBlockUpdate:block", async ({ event, context }) => {
   try {
     const blockNumber = event.block.number;
-    const [data, recentlyBridgedFromPerp] = await Promise.all([publicClient.readContract({
+    const [data, recentlyBridgedToEvm] = await Promise.all([publicClient.readContract({
       abi: LEVERAGED_TOKEN_HELPER_ABI,
       address: LEVERAGED_TOKEN_HELPER_ADDRESS,
       functionName: "getExchangeRates",
     }), context.db.sql.select({
       leveragedTokenAddress: schema.leveragedToken.address,
     }).from(schema.leveragedToken).where(
-      gte(schema.leveragedToken.latestBridgeFromPerpBlock, blockNumber - BRIDGE_FROM_PERP_THRESHOLD)
+      gte(schema.leveragedToken.latestBridgeToEvmBlock, blockNumber - BRIDGE_TO_EVM_THRESHOLD)
     )]);
 
-    // We exclude leveraged tokens that have been bridged from Perp in the last BRIDGE_FROM_PERP_THRESHOLD blocks
+    // We exclude leveraged tokens that have been bridged to EVM in the last BRIDGE_TO_EVM_THRESHOLD blocks
     // This is because of an RPC issue where the exchange rate returns an incorrect value in the block following the bridge
-    const validData = data.filter((item) => !recentlyBridgedFromPerp.some((lt) => addressMatch(lt.leveragedTokenAddress, item.leveragedTokenAddress)));
+    const validData = data.filter((item) => !recentlyBridgedToEvm.some((lt) => addressMatch(lt.leveragedTokenAddress, item.leveragedTokenAddress)));
 
     await Promise.all(
       validData.map((item) =>

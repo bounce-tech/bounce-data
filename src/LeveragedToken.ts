@@ -313,10 +313,10 @@ ponder.on("LeveragedToken:SetMintPaused", async ({ event, context }) => {
   });
 });
 
-// event BridgeFromPerp(address indexed sender, uint256 amount);
-ponder.on("LeveragedToken:BridgeFromPerp", async ({ event, context }) => {
+// event BridgeToEvm(address indexed sender, uint256 amount);
+ponder.on("LeveragedToken:BridgeToEvm", async ({ event, context }) => {
   const leveragedToken = event.log.address;
   await context.db.update(schema.leveragedToken, { address: leveragedToken }).set({
-    latestBridgeFromPerpBlock: event.block.number,
+    latestBridgeToEvmBlock: event.block.number,
   });
 });
