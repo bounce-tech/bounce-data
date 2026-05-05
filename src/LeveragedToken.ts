@@ -5,6 +5,7 @@ import { zeroAddress } from "viem";
 import { ensureUser } from "./utils/ensure-user";
 import { getTargetLeverage } from "./utils/get-target-leverage";
 import { ensureBalance } from "./utils/ensure-balance";
+import { ensureLeveragedToken } from "./utils/ensure-leveraged-token";
 import { FACTORY_ADDRESS } from "@bouncetech/contracts";
 import addressMatch from "./utils/address-match";
 import { div, mul } from "./api/utils/scaled-number";
@@ -16,6 +17,8 @@ ponder.on("LeveragedToken:Mint", async ({ event, context }) => {
 
   // Solving an issue where the factory mints some tokens before emitting the CreateLeveragedToken event
   if (addressMatch(minter, FACTORY_ADDRESS)) return;
+
+  await ensureLeveragedToken(context, leveragedToken);
 
   const txHash = event.transaction?.hash ?? "";
   await context.db.insert(schema.trade).values({
@@ -69,6 +72,8 @@ ponder.on("LeveragedToken:Redeem", async ({ event, context }) => {
   const { sender, to, ltAmount, baseAmount } = event.args;
   if (ltAmount === 0n || baseAmount === 0n) return;
   const leveragedToken = event.log.address;
+
+  await ensureLeveragedToken(context, leveragedToken);
 
   // Update balance
   await ensureBalance(context.db, to, leveragedToken);
@@ -138,6 +143,7 @@ ponder.on("LeveragedToken:PrepareRedeem", async ({ event, context }) => {
   const { sender, ltAmount } = event.args;
   const leveragedToken = event.log.address;
 
+  await ensureLeveragedToken(context, leveragedToken);
   await ensureUser(context.db, sender);
   await context.db
     .insert(schema.balance)
@@ -158,6 +164,8 @@ ponder.on("LeveragedToken:ExecuteRedeem", async ({ event, context }) => {
   const { user, ltAmount, baseAmount } = event.args;
   if (ltAmount === 0n || baseAmount === 0n) return;
   const leveragedToken = event.log.address;
+
+  await ensureLeveragedToken(context, leveragedToken);
 
   // Update balance
   await ensureBalance(context.db, user, leveragedToken);
@@ -237,6 +245,7 @@ ponder.on("LeveragedToken:ExecuteRedeem", async ({ event, context }) => {
 // event CancelRedeem(address indexed user, uint256 credit);
 ponder.on("LeveragedToken:CancelRedeem", async ({ event, context }) => {
   const { user, credit } = event.args;
+  await ensureLeveragedToken(context, event.log.address);
   await ensureUser(context.db, user);
   await context.db
     .insert(schema.balance)
@@ -255,6 +264,8 @@ ponder.on("LeveragedToken:Transfer", async ({ event, context }) => {
   const leveragedToken = event.log.address;
 
   if (addressMatch(to, FACTORY_ADDRESS)) return;
+
+  await ensureLeveragedToken(context, leveragedToken);
 
   // Updating total supply
   if (from === zeroAddress) {
@@ -295,6 +306,8 @@ ponder.on("LeveragedToken:Transfer", async ({ event, context }) => {
 ponder.on("LeveragedToken:SendFeesToTreasury", async ({ event, context }) => {
   const { amount } = event.args;
 
+  await ensureLeveragedToken(context, event.log.address);
+
   await context.db.insert(schema.fee).values({
     id: crypto.randomUUID(),
     leveragedToken: event.log.address,
@@ -308,6 +321,7 @@ ponder.on("LeveragedToken:SendFeesToTreasury", async ({ event, context }) => {
 ponder.on("LeveragedToken:SetMintPaused", async ({ event, context }) => {
   const { mintPaused } = event.args;
   const leveragedToken = event.log.address;
+  await ensureLeveragedToken(context, leveragedToken);
   await context.db.update(schema.leveragedToken, { address: leveragedToken }).set({
     mintPaused,
   });
@@ -316,6 +330,7 @@ ponder.on("LeveragedToken:SetMintPaused", async ({ event, context }) => {
 // event BridgeToEvm(address indexed sender, uint256 amount);
 ponder.on("LeveragedToken:BridgeToEvm", async ({ event, context }) => {
   const leveragedToken = event.log.address;
+  await ensureLeveragedToken(context, leveragedToken);
   await context.db.update(schema.leveragedToken, { address: leveragedToken }).set({
     latestBridgeToEvmBlock: event.block.number,
   });
