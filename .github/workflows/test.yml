@@ -54,7 +54,7 @@ jobs:
       - name: Wait for indexer to be ready
         run: |
           echo "Waiting for indexer to become ready..."
-          for i in $(seq 1 360); do
+          for i in $(seq 1 2160); do
             if curl -sf http://localhost:42069/ready > /dev/null 2>&1; then
               echo "Indexer is ready!"
               exit 0
