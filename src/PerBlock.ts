@@ -3,7 +3,7 @@ import { LEVERAGED_TOKEN_HELPER_ABI, LEVERAGED_TOKEN_HELPER_ADDRESS } from "@bou
 import { hyperEvm } from "viem/chains";
 import schema from "ponder:schema";
 import { createPublicClient, http } from "viem";
-import { gte } from "ponder";
+import { eq, gte, inArray, sql } from "ponder";
 import addressMatch from "./utils/address-match";
 
 const BRIDGE_TO_EVM_THRESHOLD = 1n;
@@ -34,15 +34,36 @@ ponder.on("PerBlockUpdate:block", async ({ event, context }) => {
     // This is because of an RPC issue where the exchange rate returns an incorrect value in the block following the bridge
     const validData = data.filter((item) => !recentlyBridgedToEvm.some((lt) => addressMatch(lt.leveragedTokenAddress, item.leveragedTokenAddress)));
 
-    await Promise.all(
-      validData.map((item) =>
-        context.db
-          .update(schema.leveragedToken, { address: item.leveragedTokenAddress })
-          .set(() => ({
-            exchangeRate: item.exchangeRate,
-          }))
-      )
+    if (validData.length === 0) return;
+
+    // Update every leveraged token's exchange rate in a single statement.
+    // Issuing one `context.db.update` per token forces a serialized SELECT + UPDATE
+    // round-trip for each token (every indexing-store method runs behind a mutex),
+    // so this loop scaled linearly with token count and dominated per-block indexing
+    // time once the protocol grew past ~100 tokens. The bulk `UPDATE ... CASE` runs as
+    // a single round-trip. This is the documented `updateMany` replacement and remains
+    // reorg-safe: row-level Postgres triggers capture the writes regardless of source.
+    const exchangeRateCase = sql.join(
+      [
+        sql`(case`,
+        ...validData.map(
+          (item) =>
+            sql`when ${eq(schema.leveragedToken.address, item.leveragedTokenAddress)} then ${item.exchangeRate}::numeric`
+        ),
+        sql`end)`,
+      ],
+      sql.raw(" ")
     );
+
+    await context.db.sql
+      .update(schema.leveragedToken)
+      .set({ exchangeRate: exchangeRateCase })
+      .where(
+        inArray(
+          schema.leveragedToken.address,
+          validData.map((item) => item.leveragedTokenAddress)
+        )
+      );
   } catch (error) {
     console.error("Error updating exchange rates:", error);
   }
