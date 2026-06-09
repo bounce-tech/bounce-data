@@ -154,7 +154,6 @@ export default createConfig({
         "0x1BE10C62e03640D0DDD935A3c9349F8907640a30",
         "0x90Ffe279dbCE1c3f9c2cBE82c7A38bee17F27964",
         "0x9E9cf0b7DB133e79549E7374838e7e8190460667",
-        "0xeC92e5C8f3319bbC09E4Dc86bFAB5c15e54e0C48",
         "0x832bd9d809248e575c75e985fae8e27eef4d93d7",
         "0x3e7864b33d336dff6e18a2dea6f50d78d4621fdd",
         "0x80bef304aa8a8e7be75b9c11e6e13ddf49bdbffb",
