@@ -321,8 +321,8 @@ Get portfolio data for a user including balances, unrealized profit, and realize
   - `mintPaused`: Whether minting is currently paused for this leveraged token (boolean)
   - `exchangeRate`: Current exchange rate (as string, serialized from BigInt)
   - `userBalance`: User's balance of this leveraged token (as string, serialized from BigInt)
-- `unrealizedProfit`: Unrealized profit for this leveraged token (number)
-- `unrealizedPercent`: Unrealized profit as a percentage (number, e.g., 0.15 = 15%)
+  - `unrealizedProfit`: Unrealized profit for this leveraged token (number)
+  - `unrealizedPercent`: Unrealized profit as a percentage (number, e.g., 0.15 = 15%)
 - `pnlChart`: Array of PnL chart data points showing the cumulative profit and loss over time. Each data point contains:
   - `timestamp`: Unix timestamp in milliseconds (number)
   - `value`: Cumulative PnL value at that timestamp (number)
