@@ -98,6 +98,12 @@ const getActiveUsersChart = async (): Promise<ActiveUsersChartPoint[]> => {
 
     const applyDay = (rows: DailyRow[]) => {
       for (const row of rows) {
+        // Key on `recipient` for both buys and sells. The indexer attributes
+        // every trade's balance and cost-basis change to the `to` address,
+        // stored as the trade's `recipient` (see LeveragedToken Mint/Redeem/
+        // ExecuteRedeem); `sender` is informational only. Keying on `recipient`
+        // keeps this reconstruction consistent with the `balance`/`purchaseCost`
+        // table that the previous current-day holder check read from.
         const key = `${row.recipient}:${row.token}`;
         const balance = positionBalance.get(key) || 0n;
         const cost = positionCost.get(key) || 0n;
