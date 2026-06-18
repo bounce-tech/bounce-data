@@ -8,7 +8,7 @@ import { ensureBalance } from "./utils/ensure-balance";
 import { ensureLeveragedToken } from "./utils/ensure-leveraged-token";
 import { FACTORY_ADDRESS } from "@bouncetech/contracts";
 import addressMatch from "./utils/address-match";
-import { div, mul } from "./api/utils/scaled-number";
+import { div } from "./api/utils/scaled-number";
 
 // event Mint(address indexed minter, address indexed to, uint256 baseAmount, uint256 ltAmount);
 ponder.on("LeveragedToken:Mint", async ({ event, context }) => {
@@ -81,14 +81,18 @@ ponder.on("LeveragedToken:Redeem", async ({ event, context }) => {
   if (!balance) throw new Error("Balance not found");
   const balanceBeforeRedeem = balance.totalBalance + ltAmount;
   if (balanceBeforeRedeem === 0n) throw new Error("Balance before redeem is 0");
-  const purchasePrice = div(balance.purchaseCost, balanceBeforeRedeem);
-  const currentPrice = div(baseAmount, ltAmount);
-  const priceDifference = currentPrice - purchasePrice;
-  const profit = mul(priceDifference, ltAmount);
+  // Average-cost basis of the redeemed tokens, computed as a single
+  // multiply-before-divide. We deliberately avoid deriving an intermediate
+  // per-token price: purchaseCost is denominated in the base asset (6 decimals)
+  // while balances are 18 decimals, so a per-token price collapses to a handful
+  // of significant digits and integer truncation skews the residual basis.
+  const remainingCost = (balance.purchaseCost * balance.totalBalance) / balanceBeforeRedeem;
+  const costOfRedeemedTokens = balance.purchaseCost - remainingCost;
+  const profit = baseAmount - costOfRedeemedTokens;
   await context.db.update(schema.balance, { user: to, leveragedToken }).set((row) => {
     return ({
       realizedProfit: row.realizedProfit + profit,
-      purchaseCost: mul(balance.totalBalance, purchasePrice),
+      purchaseCost: remainingCost,
     })
   });
 
@@ -104,7 +108,7 @@ ponder.on("LeveragedToken:Redeem", async ({ event, context }) => {
     baseAssetAmount: baseAmount,
     leveragedTokenAmount: ltAmount,
     profitAmount: profit,
-    profitPercent: purchasePrice === 0n ? 0n : div(priceDifference, purchasePrice),
+    profitPercent: costOfRedeemedTokens === 0n ? 0n : div(profit, costOfRedeemedTokens),
     originTxHash: txHash,
     txHash: txHash,
   });
@@ -174,14 +178,16 @@ ponder.on("LeveragedToken:ExecuteRedeem", async ({ event, context }) => {
   const balanceBeforeRedeem = balance.totalBalance;
   const balanceAfterRedeem = balanceBeforeRedeem - ltAmount;
   if (balanceBeforeRedeem === 0n) throw new Error("Balance after redeem is 0");
-  const purchasePrice = div(balance.purchaseCost, balanceBeforeRedeem);
-  const currentPrice = div(baseAmount, ltAmount);
-  const priceDifference = currentPrice - purchasePrice;
-  const profit = mul(priceDifference, ltAmount);
+  // See the Redeem handler: derive the residual basis directly via
+  // multiply-before-divide to avoid the precision loss of an intermediate
+  // per-token price (6-decimal cost vs 18-decimal balances).
+  const remainingCost = (balance.purchaseCost * balanceAfterRedeem) / balanceBeforeRedeem;
+  const costOfRedeemedTokens = balance.purchaseCost - remainingCost;
+  const profit = baseAmount - costOfRedeemedTokens;
   await context.db.update(schema.balance, { user, leveragedToken }).set((row) => {
     return ({
       realizedProfit: row.realizedProfit + profit,
-      purchaseCost: mul(balanceAfterRedeem, purchasePrice),
+      purchaseCost: remainingCost,
     })
   });
 
@@ -201,7 +207,7 @@ ponder.on("LeveragedToken:ExecuteRedeem", async ({ event, context }) => {
     baseAssetAmount: baseAmount,
     leveragedTokenAmount: ltAmount,
     profitAmount: profit,
-    profitPercent: purchasePrice === 0n ? 0n : div(priceDifference, purchasePrice),
+    profitPercent: costOfRedeemedTokens === 0n ? 0n : div(profit, costOfRedeemedTokens),
     originTxHash: pendingRedemption.txHash,
     txHash: event.transaction?.hash ?? "",
   });

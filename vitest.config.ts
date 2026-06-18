@@ -29,6 +29,10 @@ export default defineConfig({
     alias: {
       "ponder:api": path.resolve(__dirname, "./src/mocks/ponder-api.ts"),
       "ponder:schema": path.resolve(__dirname, "./src/mocks/ponder-schema.ts"),
+      "ponder:registry": path.resolve(
+        __dirname,
+        "./src/mocks/ponder-registry.ts"
+      ),
     },
   },
 });
