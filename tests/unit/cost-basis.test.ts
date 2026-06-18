@@ -264,9 +264,11 @@ describe("cost basis after partial redeem (PnL bug)", () => {
     // FIFO basis: the 15.0B left all come from the second lot.
     const fifoBasis = (usd(212_816) * remaining) / (15_454_000_000n * TOKEN);
 
-    // Whatever convention is chosen, the basis must land in [FIFO, avg-cost].
-    expect(balance.purchaseCost >= fifoBasis).toBe(true);
-    expect(balance.purchaseCost <= avgCostBasis).toBe(true);
+    // This PR implements the average-cost convention, so pin the exact basis
+    // and sanity-check it stays above the FIFO floor (and far above the
+    // buggy $195,000 the truncation produced).
+    expect(balance.purchaseCost).toBe(avgCostBasis);
+    expect(balance.purchaseCost > fifoBasis).toBe(true);
   });
 
   // -------------------------------------------------------------------------
