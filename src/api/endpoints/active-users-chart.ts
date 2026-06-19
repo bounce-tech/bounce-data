@@ -1,6 +1,6 @@
 import { db } from "ponder:api";
 import schema from "ponder:schema";
-import { eq, sql } from "drizzle-orm";
+import { asc } from "drizzle-orm";
 
 const SECONDS_PER_DAY = 86400;
 
@@ -15,68 +15,73 @@ interface ActiveUsersChartPoint {
   activeUsers: number;
 }
 
-interface DailyRow {
+interface TradeRow {
   recipient: string;
   token: string;
-  buyTokens: bigint;
-  buyBase: bigint;
-  sellTokens: bigint;
-  notionalVolume: bigint;
+  timestamp: bigint;
+  isBuy: boolean;
+  baseAssetAmount: bigint;
+  leveragedTokenAmount: bigint;
 }
 
 const getActiveUsersChart = async (): Promise<ActiveUsersChartPoint[]> => {
   try {
-    // Aggregate trades per (user, token, day). We need per-token buy/sell flows
-    // (not just net volume) so we can reconstruct each user's running cost basis
-    // and value their open positions on every historical day, rather than only
-    // crediting current holders to the latest data point.
-    const dailyData = await db
+    // Target leverage per token (small table) for notional-volume calculation.
+    const tokens = await db
+      .select({
+        address: schema.leveragedToken.address,
+        targetLeverage: schema.leveragedToken.targetLeverage,
+      })
+      .from(schema.leveragedToken);
+    const leverageByToken = new Map<string, bigint>();
+    for (const t of tokens) leverageByToken.set(t.address, t.targetLeverage);
+
+    // Fetch every trade in chronological order. We reconstruct each user's
+    // running position balance and average-cost basis trade-by-trade (mirroring
+    // the indexer in LeveragedToken.ts), so the holding criterion can be
+    // evaluated on every historical day rather than only on the latest point.
+    // Processing per trade (not per-day aggregates) preserves intraday ordering:
+    // a same-day exit and re-entry correctly resets the cost basis.
+    const trades = (await db
       .select({
         recipient: schema.trade.recipient,
         token: schema.trade.leveragedToken,
-        dayTimestamp: sql<string>`(${schema.trade.timestamp} - (${schema.trade.timestamp} % ${SECONDS_PER_DAY}))`,
-        buyTokens: sql<string>`coalesce(sum(case when ${schema.trade.isBuy} then ${schema.trade.leveragedTokenAmount} else 0 end), 0)`,
-        buyBase: sql<string>`coalesce(sum(case when ${schema.trade.isBuy} then ${schema.trade.baseAssetAmount} else 0 end), 0)`,
-        sellTokens: sql<string>`coalesce(sum(case when not ${schema.trade.isBuy} then ${schema.trade.leveragedTokenAmount} else 0 end), 0)`,
-        notionalVolume: sql<string>`sum(${schema.trade.baseAssetAmount} * ${schema.leveragedToken.targetLeverage})`,
+        timestamp: schema.trade.timestamp,
+        isBuy: schema.trade.isBuy,
+        baseAssetAmount: schema.trade.baseAssetAmount,
+        leveragedTokenAmount: schema.trade.leveragedTokenAmount,
       })
       .from(schema.trade)
-      .innerJoin(
-        schema.leveragedToken,
-        eq(schema.trade.leveragedToken, schema.leveragedToken.address)
-      )
-      .groupBy(sql`1`, sql`2`, sql`3`)
-      .orderBy(sql`3 asc`);
+      .orderBy(asc(schema.trade.timestamp), asc(schema.trade.id))) as TradeRow[];
 
-    if (dailyData.length === 0) return [];
+    if (trades.length === 0) return [];
 
-    // Group rows by day and accumulate per-user notional volume for the day.
-    const rowsByDay = new Map<number, DailyRow[]>();
+    // Bucket trades by day (preserving chronological order within each day) and
+    // accumulate per-user notional volume per day.
+    const tradesByDay = new Map<number, TradeRow[]>();
     const volumeByDayUser = new Map<number, Map<string, bigint>>();
     let minDay = Infinity;
     let maxDay = -Infinity;
 
-    for (const row of dailyData) {
-      const day = Number(row.dayTimestamp);
+    for (const trade of trades) {
+      const ts = Number(trade.timestamp);
+      const day = ts - (ts % SECONDS_PER_DAY);
       if (day < minDay) minDay = day;
       if (day > maxDay) maxDay = day;
 
-      if (!rowsByDay.has(day)) rowsByDay.set(day, []);
-      rowsByDay.get(day)!.push({
-        recipient: row.recipient,
-        token: row.token,
-        buyTokens: BigInt(row.buyTokens),
-        buyBase: BigInt(row.buyBase),
-        sellTokens: BigInt(row.sellTokens),
-        notionalVolume: BigInt(row.notionalVolume),
-      });
+      if (!tradesByDay.has(day)) tradesByDay.set(day, []);
+      tradesByDay.get(day)!.push(trade);
 
-      if (!volumeByDayUser.has(day)) volumeByDayUser.set(day, new Map());
-      const dayVolume = volumeByDayUser.get(day)!;
-      dayVolume.set(
-        row.recipient,
-        (dayVolume.get(row.recipient) || 0n) + BigInt(row.notionalVolume)
-      );
+      const leverage = leverageByToken.get(trade.token);
+      if (leverage !== undefined) {
+        const notional = trade.baseAssetAmount * leverage;
+        if (!volumeByDayUser.has(day)) volumeByDayUser.set(day, new Map());
+        const dayVolume = volumeByDayUser.get(day)!;
+        dayVolume.set(
+          trade.recipient,
+          (dayVolume.get(trade.recipient) || 0n) + notional
+        );
+      }
     }
 
     // Running cost-basis reconstruction state.
@@ -96,43 +101,37 @@ const getActiveUsersChart = async (): Promise<ActiveUsersChartPoint[]> => {
       else holders.delete(user);
     };
 
-    const applyDay = (rows: DailyRow[]) => {
-      for (const row of rows) {
-        // Key on `recipient` for both buys and sells. The indexer attributes
-        // every trade's balance and cost-basis change to the `to` address,
-        // stored as the trade's `recipient` (see LeveragedToken Mint/Redeem/
-        // ExecuteRedeem); `sender` is informational only. Keying on `recipient`
-        // keeps this reconstruction consistent with the `balance`/`purchaseCost`
-        // table that the previous current-day holder check read from.
-        const key = `${row.recipient}:${row.token}`;
-        const balance = positionBalance.get(key) || 0n;
-        const cost = positionCost.get(key) || 0n;
+    const applyTrade = (trade: TradeRow) => {
+      // Key on `recipient`: the indexer attributes every trade's balance and
+      // cost-basis change to the `to` address, stored as the trade's `recipient`
+      // (see LeveragedToken Mint/Redeem/ExecuteRedeem); `sender` is informational
+      // only. This keeps the reconstruction consistent with the indexer's
+      // balance/purchaseCost table.
+      const key = `${trade.recipient}:${trade.token}`;
+      const balance = positionBalance.get(key) || 0n;
+      const cost = positionCost.get(key) || 0n;
 
-        // Apply the day's buys, then its sells. Sells reduce cost basis using
-        // the same average-cost method as the indexer (multiply-before-divide).
-        const balanceAfterBuys = balance + row.buyTokens;
-        const costAfterBuys = cost + row.buyBase;
-
-        let newBalance = balanceAfterBuys - row.sellTokens;
-        let costOfSold = 0n;
-        if (row.sellTokens > 0n && balanceAfterBuys > 0n) {
-          const sold =
-            row.sellTokens > balanceAfterBuys ? balanceAfterBuys : row.sellTokens;
-          costOfSold = (costAfterBuys * sold) / balanceAfterBuys;
-        }
-        let newCost = costAfterBuys - costOfSold;
-
-        // Clamp residuals so untracked transfers can't drive values negative.
-        if (newBalance <= 0n) {
-          newBalance = 0n;
-          newCost = 0n;
-        }
-        if (newCost < 0n) newCost = 0n;
-
-        positionBalance.set(key, newBalance);
-        positionCost.set(key, newCost);
-        applyUserCostDelta(row.recipient, newCost - cost);
+      let newBalance: bigint;
+      let newCost: bigint;
+      if (trade.isBuy) {
+        newBalance = balance + trade.leveragedTokenAmount;
+        newCost = cost + trade.baseAssetAmount;
+      } else if (balance <= 0n || trade.leveragedTokenAmount >= balance) {
+        // Full exit, or tokens acquired via an untracked transfer; clamp to zero.
+        newBalance = 0n;
+        newCost = 0n;
+      } else {
+        // Partial redeem: retain the average-cost remainder exactly as the
+        // indexer does -- remaining = cost * balanceAfter / balanceBefore --
+        // rather than subtracting the cost of the sold slice, which can leave an
+        // extra base unit and misclassify users near the threshold.
+        newBalance = balance - trade.leveragedTokenAmount;
+        newCost = (cost * newBalance) / balance;
       }
+
+      positionBalance.set(key, newBalance);
+      positionCost.set(key, newCost);
+      applyUserCostDelta(trade.recipient, newCost - cost);
     };
 
     // Extend chart to today.
@@ -143,9 +142,9 @@ const getActiveUsersChart = async (): Promise<ActiveUsersChartPoint[]> => {
     const chart: ActiveUsersChartPoint[] = [];
 
     for (let day = minDay; day <= chartEnd; day += SECONDS_PER_DAY) {
-      // Update cost-basis state with this day's trades before snapshotting.
-      const dayRows = rowsByDay.get(day);
-      if (dayRows) applyDay(dayRows);
+      // Apply this day's trades (in chronological order) before snapshotting.
+      const dayRows = tradesByDay.get(day);
+      if (dayRows) for (const trade of dayRows) applyTrade(trade);
 
       const windowStart = day - 6 * SECONDS_PER_DAY;
 
