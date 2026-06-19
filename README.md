@@ -197,7 +197,7 @@ GET https://indexing.bounce.tech/volume-chart
 
 ### Active Users Chart
 
-Get the number of active users per day. An active user is defined as someone who has traded at least $500 of notional volume within the last 7 days, or who currently has open positions worth $500 or more in aggregate. The chart provides one data point per day from the first trade to the current day, using a rolling 7 day window for the volume criteria. The current position value check is applied only to the latest data point (today), since historical position values cannot be computed from the current state.
+Get the number of active users per day. An active user is defined as someone who has traded at least $500 of notional volume within the last 7 days, or who is holding open positions with an aggregate cost basis of $500 or more. The chart provides one data point per day from the first trade to the current day, using a rolling 7 day window for the volume criteria. The holding criterion is reconstructed from trade history and applied to every day (using cost basis, since historical market values cannot be recomputed from the current state), so users are credited on each day they were holding rather than only on the latest data point.
 
 **Endpoint:** `GET https://indexing.bounce.tech/active-users-chart`
 
