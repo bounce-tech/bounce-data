@@ -373,8 +373,7 @@ ponder.on("LeveragedToken:BridgeToEvm", async ({ event, context }) => {
     latestBridgeToEvmBlock: event.block.number,
   });
 
-  // History row per bridge so old anchors correct against marker history, not
-  // the live scalar. PK (chainId, txHash, logIndex) is unique per log.
+  // Append to history alongside the live scalar above.
   await context.db.insert(schema.bridgeMarker).values({
     chainId: context.chain.id,
     txHash: event.transaction.hash,

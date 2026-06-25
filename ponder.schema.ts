@@ -23,10 +23,9 @@ export const leveragedToken = onchainTable(
   })
 );
 
-// One row per BridgeToEvm event, so month-old change-anchors are correctable
-// against marker history rather than the live latestBridgeToEvmBlock scalar.
-// Additive: the scalar stays for the live path. Reads are canonical-only and
-// rely on native Ponder reorg rollback — no manual canonical flag here.
+// One row per BridgeToEvm event, so old anchors correct against marker history
+// instead of the single live latestBridgeToEvmBlock scalar. Canonicality comes
+// from Ponder reorg rollback — no manual flag.
 export const bridgeMarker = onchainTable(
   "bridgeMarker",
   (t) => ({
@@ -41,7 +40,7 @@ export const bridgeMarker = onchainTable(
   }),
   (table) => ({
     pk: primaryKey({ columns: [table.chainId, table.txHash, table.logIndex] }),
-    // Supports §2 reads: markers at/near a target block for a given token.
+    // Read path: markers at/near a target block for a token.
     tokenBlockIdx: index().on(table.tokenAddress, table.blockNumber),
   })
 );
