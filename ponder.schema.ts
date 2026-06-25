@@ -23,6 +23,28 @@ export const leveragedToken = onchainTable(
   })
 );
 
+// One row per BridgeToEvm event, so old anchors correct against marker history
+// instead of the single live latestBridgeToEvmBlock scalar. Canonicality comes
+// from Ponder reorg rollback — no manual flag.
+export const bridgeMarker = onchainTable(
+  "bridgeMarker",
+  (t) => ({
+    chainId: t.integer().notNull(),
+    txHash: t.hex().notNull(),
+    logIndex: t.integer().notNull(),
+    tokenAddress: t.hex().notNull(),
+    blockNumber: t.bigint().notNull(),
+    blockTimestamp: t.bigint().notNull(),
+    amount: t.bigint().notNull(),
+    sender: t.hex().notNull(),
+  }),
+  (table) => ({
+    pk: primaryKey({ columns: [table.chainId, table.txHash, table.logIndex] }),
+    // Read path: markers at/near a target block for a token.
+    tokenBlockIdx: index().on(table.tokenAddress, table.blockNumber),
+  })
+);
+
 export const pendingRedemption = onchainTable(
   "pendingRedemption",
   (t) => ({
