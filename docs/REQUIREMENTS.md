@@ -39,10 +39,15 @@ corrected rate across REST and the WS DO only when both fold over the *same*
 canonical `token_snapshots` sampled-block sequence. To make this enforceable
 rather than caller discipline, `correctSeries(samples, opts?)` takes that ordered
 window and performs the bounded predecessor lookup internally — callers cannot
-supply a divergent `prevCorrectedRate`. A corrected rate at block B depends only
-on the run of held blocks back to the nearest clean anchor (within `K`), so any
-window that reaches that anchor agrees on B regardless of polling cadence; a
-window starting mid-hold-chain yields `unavailable`, never a wrong number.
+supply a divergent `prevCorrectedRate`. It requires a **complete, contiguous**
+slice of the canonical sequence: strictly ascending by `block` and strictly
+consecutive by `ordinal` (rejects gaps, reversal, and duplicates), because the
+bounded lookback `K` counts distinct sampled blocks — a window that skips a
+canonical row would under-count the hold chain and diverge from the complete
+window. Given a complete window, a corrected rate at block B depends only on the
+run of held blocks back to the nearest clean anchor (within `K`), so any window
+that reaches that anchor agrees on B regardless of polling cadence; a window
+starting mid-hold-chain yields `unavailable`, never a wrong number.
 
 **Packaging.** The function lives in `src/correction/` and is intentionally
 dependency-free so it can be lifted into a git-ref'd TS package imported by REST

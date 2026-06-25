@@ -142,19 +142,24 @@ describe("correct() — pure bridge-rate correction (#24 §3)", () => {
     });
   });
 
-  describe("correctSeries() — canonical-window determinism (Codex P1)", () => {
-    // A canonical token_snapshots sequence: clean anchor at 10, then a 3-block
-    // bridge hold (11,12,13), then clean again at 14.
-    const samples: RateSample[] = [
-      { block: 10n, rawRate: 490n, markers: [] },
-      { block: 11n, rawRate: 111n, markers: [marker(11n)] },
-      { block: 12n, rawRate: 222n, markers: [marker(12n)] },
-      { block: 13n, rawRate: 333n, markers: [marker(13n)] },
-      { block: 14n, rawRate: 500n, markers: [] },
+  describe("correctSeries() — canonical-window determinism (Codex P1/P2)", () => {
+    // Canonical token_snapshots sequence. Sampled blocks are NOT consecutive
+    // block numbers (sampled every ~tick), so `ordinal` — not block — is what the
+    // bounded lookback counts. ord 0..1 clean, ord 2 clean anchor, ord 3..5 a
+    // 3-sample bridge hold, ord 6 clean again.
+    const canonical: RateSample[] = [
+      { ordinal: 0n, block: 40n, rawRate: 480n, markers: [] },
+      { ordinal: 1n, block: 70n, rawRate: 485n, markers: [] },
+      { ordinal: 2n, block: 100n, rawRate: 490n, markers: [] }, // anchor
+      { ordinal: 3n, block: 130n, rawRate: 111n, markers: [marker(130n)] },
+      { ordinal: 4n, block: 160n, rawRate: 222n, markers: [marker(160n)] },
+      { ordinal: 5n, block: 190n, rawRate: 333n, markers: [marker(190n)] },
+      { ordinal: 6n, block: 220n, rawRate: 500n, markers: [] },
     ];
+    const fromAnchor = canonical.slice(2); // ord 2..6
 
     it("folds the predecessor internally; hold chain carries the anchor rate", () => {
-      const out = correctSeries(samples);
+      const out = correctSeries(fromAnchor);
       expect(out.map((r) => r.rate)).toEqual([490n, 490n, 490n, 490n, 500n]);
       expect(out.map((r) => r.status)).toEqual([
         "corrected",
@@ -166,25 +171,39 @@ describe("correct() — pure bridge-rate correction (#24 §3)", () => {
       expect(out.map((r) => r.holdDepth)).toEqual([0, 1, 2, 3, 0]);
     });
 
-    it("is cadence-independent: any window reaching the anchor agrees on a block", () => {
-      // The corrected rate at block 13 must be identical whether a consumer's
-      // window starts at the anchor (10) or earlier — both share the canonical
-      // sequence and reach the clean anchor within K.
-      const fromAnchor = correctSeries(samples);
-      const fromEarlier = correctSeries(
-        [{ block: 8n, rawRate: 480n, markers: [] }, { block: 9n, rawRate: 485n, markers: [] }, ...samples]
-      );
-      const at13a = fromAnchor.find((_, i) => samples[i]!.block === 13n)!;
-      const at13b = fromEarlier[fromEarlier.length - 2]!; // 13 is second-to-last
-      expect(at13b).toEqual(at13a);
+    it("is cadence-independent: any complete window reaching the anchor agrees on a block", () => {
+      // The corrected rate at block 190 (ord 5) is identical whether a consumer's
+      // window starts at the clean anchor (ord 2) or earlier (ord 0).
+      const at190FromAnchor = correctSeries(fromAnchor).find(
+        (_, i) => fromAnchor[i]!.block === 190n
+      )!;
+      const full = correctSeries(canonical);
+      const at190FromEarlier = full[5]!;
+      expect(at190FromEarlier).toEqual(at190FromAnchor);
+    });
+
+    it("rejects a sparse window that skips a canonical row (P1 regression)", () => {
+      // Dropping ord 4 leaves ords [2,3,5,6] — a gap. With a complete window
+      // block 190 holds (depth 3); a gappy window would under-count and could
+      // return a wrong rate, so it must be rejected outright.
+      const sparse = [canonical[2]!, canonical[3]!, canonical[5]!, canonical[6]!];
+      expect(() => correctSeries(sparse)).toThrow(/contiguous canonical window/);
     });
 
     it("a window starting mid-hold-chain (no anchor) is unavailable, never a wrong number", () => {
-      // Slice off the clean anchor: the leading held block has no trusted
-      // predecessor, so it is unavailable rather than silently anchored wrong.
-      const out = correctSeries(samples.slice(1)); // starts at block 11 (held)
+      const out = correctSeries(canonical.slice(3)); // starts at ord 3 (held)
       expect(out[0]!.status).toBe("unavailable");
       expect(out[0]!.rate).toBe(111n); // raw, flagged
+    });
+
+    it("rejects non-ascending and duplicate blocks (P2)", () => {
+      const reversed = [...fromAnchor].reverse();
+      expect(() => correctSeries(reversed)).toThrow(/ascending|contiguous/);
+      const dup: RateSample[] = [
+        { ordinal: 0n, block: 100n, rawRate: 1n, markers: [] },
+        { ordinal: 1n, block: 100n, rawRate: 2n, markers: [] },
+      ];
+      expect(() => correctSeries(dup)).toThrow(/strictly ascending/);
     });
   });
 });

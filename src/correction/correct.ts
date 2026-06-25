@@ -123,6 +123,14 @@ export function correct(
 
 /** One sampled rate observation in the canonical `token_snapshots` sequence. */
 export interface RateSample {
+  /**
+   * Position in the canonical `token_snapshots` sampled-block sequence. Must be
+   * strictly consecutive across the window (each `prev.ordinal + 1`) so the
+   * bounded lookback counts true sampled-block distance, not array position — a
+   * window that skips a canonical row would otherwise under-count the hold chain
+   * and return a different rate than the complete window for the same block.
+   */
+  ordinal: bigint;
   block: bigint;
   rawRate: bigint;
   markers: Marker[];
@@ -132,14 +140,18 @@ export interface RateSample {
  * Correct an ordered window of sampled rates, performing the bounded predecessor
  * lookup internally so callers cannot supply a divergent `prevCorrectedRate`.
  *
- * Determinism contract: `samples` MUST be the canonical `token_snapshots`
- * sampled-block sequence in ascending `block` order — the *same* sequence every
- * consumer reads. Because a corrected rate at block B depends only on the run of
- * held blocks back to the nearest clean anchor (bounded by `K`), the result for
- * a given `(token, block)` is identical across REST and the WS DO regardless of
- * how often each polls, **as long as the window reaches that anchor**. A window
- * that starts mid-hold-chain yields `unavailable` for those leading blocks — the
- * same K-exhaustion semantics as a chain with no trusted predecessor.
+ * Determinism contract: `samples` MUST be a **complete, contiguous** slice of the
+ * canonical `token_snapshots` sampled-block sequence — strictly ascending by
+ * `block` and strictly consecutive by `ordinal` (no skipped rows). Both are
+ * enforced (throws otherwise), because the bounded lookback `K` counts distinct
+ * sampled blocks: a gappy window would under-count the hold chain and diverge
+ * from the complete window. Given a complete window, a corrected rate at block B
+ * depends only on the run of held blocks back to the nearest clean anchor (within
+ * `K`), so the result for a given `(token, block)` is identical across REST and
+ * the WS DO regardless of how often each polls, as long as the window reaches
+ * that anchor. A window that starts mid-hold-chain yields `unavailable` for the
+ * leading blocks — the same K-exhaustion semantics as a chain with no trusted
+ * predecessor; never a silently mis-anchored value.
  *
  * Returns one {@link CorrectionResult} per input sample, in the same order.
  */
@@ -149,7 +161,21 @@ export function correctSeries(
 ): CorrectionResult[] {
   const out: CorrectionResult[] = [];
   let prev: CorrectionResult | null = null;
-  for (const s of samples) {
+  for (let i = 0; i < samples.length; i++) {
+    const s = samples[i]!;
+    if (i > 0) {
+      const p = samples[i - 1]!;
+      if (s.block <= p.block) {
+        throw new Error(
+          "correctSeries(): samples must be strictly ascending by block"
+        );
+      }
+      if (s.ordinal !== p.ordinal + 1n) {
+        throw new Error(
+          "correctSeries(): samples must be a complete contiguous canonical window (consecutive ordinals)"
+        );
+      }
+    }
     const result = correct(s.block, s.rawRate, prev, s.markers, opts);
     out.push(result);
     prev = result;
