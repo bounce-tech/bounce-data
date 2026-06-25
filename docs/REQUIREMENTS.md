@@ -14,9 +14,10 @@ that was true **at that block**, rather than against the single live
   number, block timestamp, bridged amount, and sender.
 - This is **additive**: the existing `latestBridgeToEvmBlock` scalar continues to
   drive the live path; the history table sits alongside it.
-- The marker set is **factory-driven** — markers are recorded for any
-  leveraged token the indexer encounters (including factory-created tokens that
-  bootstrap on first event), not a static address list.
+- The handler records a marker for **any** leveraged token Ponder delivers a
+  `BridgeToEvm` event for, bootstrapping a token row on first sight if needed —
+  it is not limited to a token list baked into the handler. (Which tokens Ponder
+  *delivers* events for is governed by the address source; see Scope boundaries.)
 - Reads are **canonical-only**. The table stores no manual canonical flag;
   non-canonical rows are removed by Ponder's native reorg rollback, so the read
   interface never exposes them.
@@ -35,8 +36,6 @@ that was true **at that block**, rather than against the single live
 
 ### Operational note
 
-`startBlock` in `ponder.config.ts` must be at or below the first
-`BridgeToEvm` ever emitted; otherwise historical markers would be missing.
-This is a one-time check against production RPC and is verified outside this
-change. Markers are re-derivable on reindex, so lowering `startBlock` and
-reindexing once is a safe correction if needed.
+`startBlock` in `ponder.config.ts` bounds how far back marker history is
+reconstructed. Markers are fully re-derivable on reindex, so if earlier history
+is ever needed, lowering `startBlock` and reindexing once recovers it.

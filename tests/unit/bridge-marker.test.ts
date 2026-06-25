@@ -198,11 +198,12 @@ describe("BridgeToEvm -> bridgeMarker history", () => {
     expect(markers.map((m) => m.amount).sort()).toEqual([10n, 20n, 30n]);
   });
 
-  it("records markers for factory-created tokens not yet in the db", async () => {
+  it("records a marker for a delivered token not yet in the db (bootstrap)", async () => {
     const db = createDb();
     const NEW_TOKEN = "0x3333333333333333333333333333333333333333" as Address;
-    // No seeded row: ensureLeveragedToken bootstraps it from on-chain reads,
-    // proving markers track the factory-driven set, not a static address list.
+    // No seeded row: ensureLeveragedToken bootstraps it from on-chain reads, so
+    // a marker is written for any token Ponder delivers an event for. Whether
+    // new tokens are auto-discovered is a separate address-source concern.
     const context = createContext(db, {
       symbol: "SOL5L",
       name: "SOL 5x Long",
