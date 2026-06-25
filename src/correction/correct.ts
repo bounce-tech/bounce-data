@@ -1,4 +1,4 @@
-// Shared, pure bridge-rate correction (#24 §3).
+// Shared, pure bridge-rate correction.
 //
 // This module is intentionally dependency-free (no ponder / viem / DB imports)
 // so it can be lifted into a git-ref'd TS package and imported by REST + the WS

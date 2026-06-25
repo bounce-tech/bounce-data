@@ -18,7 +18,7 @@ const trusted = (rate: bigint): CorrectionResult => ({
 
 const marker = (blockNumber: bigint): Marker => ({ blockNumber });
 
-describe("correct() — pure bridge-rate correction (#24 §3)", () => {
+describe("correct() — pure bridge-rate correction", () => {
   it("no-marker: outputs the raw rate, status corrected", () => {
     const r = correct(100n, 500n, trusted(490n), []);
     expect(r).toEqual({ rate: 500n, status: "corrected", held: false, holdDepth: 0 });
@@ -142,7 +142,7 @@ describe("correct() — pure bridge-rate correction (#24 §3)", () => {
     });
   });
 
-  describe("correctSeries() — canonical-window determinism (Codex P1/P2)", () => {
+  describe("correctSeries() — canonical-window determinism", () => {
     // Canonical token_snapshots sequence. Sampled blocks are NOT consecutive
     // block numbers (sampled every ~tick), so `ordinal` — not block — is what the
     // bounded lookback counts. ord 0..1 clean, ord 2 clean anchor, ord 3..5 a
@@ -182,7 +182,7 @@ describe("correct() — pure bridge-rate correction (#24 §3)", () => {
       expect(at190FromEarlier).toEqual(at190FromAnchor);
     });
 
-    it("rejects a sparse window that skips a canonical row (P1 regression)", () => {
+    it("rejects a sparse window that skips a canonical row", () => {
       // Dropping ord 4 leaves ords [2,3,5,6] — a gap. With a complete window
       // block 190 holds (depth 3); a gappy window would under-count and could
       // return a wrong rate, so it must be rejected outright.
@@ -196,7 +196,7 @@ describe("correct() — pure bridge-rate correction (#24 §3)", () => {
       expect(out[0]!.rate).toBe(111n); // raw, flagged
     });
 
-    it("rejects non-ascending and duplicate blocks (P2)", () => {
+    it("rejects non-ascending and duplicate blocks", () => {
       const reversed = [...fromAnchor].reverse();
       expect(() => correctSeries(reversed)).toThrow(/ascending|contiguous/);
       const dup: RateSample[] = [

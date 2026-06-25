@@ -1,4 +1,4 @@
-// Public surface of the shared bridge-rate correction package (#24 §3).
+// Public surface of the shared bridge-rate correction package.
 // Source of truth lives in `bounce-data`; REST + the WS DO import this at one
 // pinned ref. Keep this barrel dependency-free.
 export {
