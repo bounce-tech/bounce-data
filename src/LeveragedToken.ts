@@ -285,14 +285,36 @@ ponder.on("LeveragedToken:Transfer", async ({ event, context }) => {
   }
 
 
+  // A transfer is "external" (peer-to-peer) only when it is not a leg of a
+  // mint, redeem, redeem escrow, or factory distribution. Those protocol legs
+  // always involve the zero address, the leveraged token contract itself
+  // (prepare/execute/cancel escrow), or the factory. External transfers move
+  // tokens without an associated cost basis, distorting the holder's PnL, so we
+  // accumulate their gross size for both the sender and the receiver.
+  const isExternalTransfer =
+    from !== zeroAddress &&
+    to !== zeroAddress &&
+    !addressMatch(from, leveragedToken) &&
+    !addressMatch(to, leveragedToken) &&
+    !addressMatch(from, FACTORY_ADDRESS);
+
   if (from !== zeroAddress) {
     await ensureUser(context.db, from);
     await context.db
       .insert(schema.balance)
-      .values({ user: from, leveragedToken, liquidBalance: -value, totalBalance: -value })
+      .values({
+        user: from,
+        leveragedToken,
+        liquidBalance: -value,
+        totalBalance: -value,
+        externalTransferAmount: isExternalTransfer ? value : 0n,
+      })
       .onConflictDoUpdate((row) => ({
         liquidBalance: row.liquidBalance - value,
         totalBalance: row.totalBalance - value,
+        externalTransferAmount: isExternalTransfer
+          ? row.externalTransferAmount + value
+          : row.externalTransferAmount,
       }));
   }
 
@@ -300,10 +322,19 @@ ponder.on("LeveragedToken:Transfer", async ({ event, context }) => {
     await ensureUser(context.db, to);
     await context.db
       .insert(schema.balance)
-      .values({ user: to, leveragedToken, liquidBalance: value, totalBalance: value })
+      .values({
+        user: to,
+        leveragedToken,
+        liquidBalance: value,
+        totalBalance: value,
+        externalTransferAmount: isExternalTransfer ? value : 0n,
+      })
       .onConflictDoUpdate((row) => ({
         liquidBalance: row.liquidBalance + value,
         totalBalance: row.totalBalance + value,
+        externalTransferAmount: isExternalTransfer
+          ? row.externalTransferAmount + value
+          : row.externalTransferAmount,
       }));
   }
 });
