@@ -3,9 +3,11 @@
 // pinned ref. Keep this barrel dependency-free.
 export {
   correct,
+  correctSeries,
   DEFAULT_K,
   type CorrectionResult,
   type CorrectionStatus,
   type CorrectOptions,
   type Marker,
+  type RateSample,
 } from "./correct";

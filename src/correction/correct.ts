@@ -120,3 +120,39 @@ export function correct(
     holdDepth,
   };
 }
+
+/** One sampled rate observation in the canonical `token_snapshots` sequence. */
+export interface RateSample {
+  block: bigint;
+  rawRate: bigint;
+  markers: Marker[];
+}
+
+/**
+ * Correct an ordered window of sampled rates, performing the bounded predecessor
+ * lookup internally so callers cannot supply a divergent `prevCorrectedRate`.
+ *
+ * Determinism contract: `samples` MUST be the canonical `token_snapshots`
+ * sampled-block sequence in ascending `block` order — the *same* sequence every
+ * consumer reads. Because a corrected rate at block B depends only on the run of
+ * held blocks back to the nearest clean anchor (bounded by `K`), the result for
+ * a given `(token, block)` is identical across REST and the WS DO regardless of
+ * how often each polls, **as long as the window reaches that anchor**. A window
+ * that starts mid-hold-chain yields `unavailable` for those leading blocks — the
+ * same K-exhaustion semantics as a chain with no trusted predecessor.
+ *
+ * Returns one {@link CorrectionResult} per input sample, in the same order.
+ */
+export function correctSeries(
+  samples: RateSample[],
+  opts: CorrectOptions = {}
+): CorrectionResult[] {
+  const out: CorrectionResult[] = [];
+  let prev: CorrectionResult | null = null;
+  for (const s of samples) {
+    const result = correct(s.block, s.rawRate, prev, s.markers, opts);
+    out.push(result);
+    prev = result;
+  }
+  return out;
+}

@@ -1,9 +1,11 @@
 import { describe, it, expect } from "vitest";
 import {
   correct,
+  correctSeries,
   DEFAULT_K,
   type CorrectionResult,
   type Marker,
+  type RateSample,
 } from "../../src/correction";
 
 // Convenience: a "corrected, not held" predecessor at some rate.
@@ -137,6 +139,52 @@ describe("correct() — pure bridge-rate correction (#24 §3)", () => {
     it("at the watermark boundary a clean block is corrected", () => {
       const r = correct(100n, 500n, trusted(490n), [], { watermark: 100n });
       expect(r).toEqual({ rate: 500n, status: "corrected", held: false, holdDepth: 0 });
+    });
+  });
+
+  describe("correctSeries() — canonical-window determinism (Codex P1)", () => {
+    // A canonical token_snapshots sequence: clean anchor at 10, then a 3-block
+    // bridge hold (11,12,13), then clean again at 14.
+    const samples: RateSample[] = [
+      { block: 10n, rawRate: 490n, markers: [] },
+      { block: 11n, rawRate: 111n, markers: [marker(11n)] },
+      { block: 12n, rawRate: 222n, markers: [marker(12n)] },
+      { block: 13n, rawRate: 333n, markers: [marker(13n)] },
+      { block: 14n, rawRate: 500n, markers: [] },
+    ];
+
+    it("folds the predecessor internally; hold chain carries the anchor rate", () => {
+      const out = correctSeries(samples);
+      expect(out.map((r) => r.rate)).toEqual([490n, 490n, 490n, 490n, 500n]);
+      expect(out.map((r) => r.status)).toEqual([
+        "corrected",
+        "corrected",
+        "corrected",
+        "corrected",
+        "corrected",
+      ]);
+      expect(out.map((r) => r.holdDepth)).toEqual([0, 1, 2, 3, 0]);
+    });
+
+    it("is cadence-independent: any window reaching the anchor agrees on a block", () => {
+      // The corrected rate at block 13 must be identical whether a consumer's
+      // window starts at the anchor (10) or earlier — both share the canonical
+      // sequence and reach the clean anchor within K.
+      const fromAnchor = correctSeries(samples);
+      const fromEarlier = correctSeries(
+        [{ block: 8n, rawRate: 480n, markers: [] }, { block: 9n, rawRate: 485n, markers: [] }, ...samples]
+      );
+      const at13a = fromAnchor.find((_, i) => samples[i]!.block === 13n)!;
+      const at13b = fromEarlier[fromEarlier.length - 2]!; // 13 is second-to-last
+      expect(at13b).toEqual(at13a);
+    });
+
+    it("a window starting mid-hold-chain (no anchor) is unavailable, never a wrong number", () => {
+      // Slice off the clean anchor: the leading held block has no trusted
+      // predecessor, so it is unavailable rather than silently anchored wrong.
+      const out = correctSeries(samples.slice(1)); // starts at block 11 (held)
+      expect(out[0]!.status).toBe("unavailable");
+      expect(out[0]!.rate).toBe(111n); // raw, flagged
     });
   });
 });
