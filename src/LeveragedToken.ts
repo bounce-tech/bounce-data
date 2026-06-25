@@ -366,9 +366,23 @@ ponder.on("LeveragedToken:SetMintPaused", async ({ event, context }) => {
 
 // event BridgeToEvm(address indexed sender, uint256 amount);
 ponder.on("LeveragedToken:BridgeToEvm", async ({ event, context }) => {
+  const { sender, amount } = event.args;
   const leveragedToken = event.log.address;
   await ensureLeveragedToken(context, leveragedToken);
   await context.db.update(schema.leveragedToken, { address: leveragedToken }).set({
     latestBridgeToEvmBlock: event.block.number,
+  });
+
+  // History row per bridge so old anchors correct against marker history, not
+  // the live scalar. PK (chainId, txHash, logIndex) is unique per log.
+  await context.db.insert(schema.bridgeMarker).values({
+    chainId: context.chain.id,
+    txHash: event.transaction.hash,
+    logIndex: event.log.logIndex,
+    tokenAddress: leveragedToken,
+    blockNumber: event.block.number,
+    blockTimestamp: event.block.timestamp,
+    amount,
+    sender,
   });
 });
