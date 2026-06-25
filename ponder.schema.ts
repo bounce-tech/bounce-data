@@ -124,6 +124,11 @@ export const balance = onchainTable(
     totalBalance: t.bigint().notNull().default(0n),
     purchaseCost: t.bigint().notNull().default(0n),
     realizedProfit: t.bigint().notNull().default(0n),
+    // Gross amount of leveraged tokens that moved through external (peer-to-peer)
+    // transfers for this holder, summing both sends and receives. These transfers
+    // carry no cost basis, so they distort PnL; tracking their size lets the API
+    // flag holders whose PnL is materially affected.
+    externalTransferAmount: t.bigint().notNull().default(0n),
   }),
   (table) => ({
     pk: primaryKey({ columns: [table.user, table.leveragedToken] }),

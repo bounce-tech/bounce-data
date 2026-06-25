@@ -881,6 +881,8 @@ Get all users from the user table who have made at least one trade.
   - `realizedProfit`: Total realized profit (number)
   - `unrealizedProfit`: Total unrealized profit (number)
   - `totalProfit`: Total profit (realized + unrealized) (number)
+  - `transfersDetected`: Whether this user's PnL is materially distorted by external (peer-to-peer) leveraged token transfers (boolean). See the disclaimer below for how this is determined.
+  - `transferShare`: The value of the user's gross external transfers as a share of their total nominal volume (number). For example `0.12` means external transfers were worth ~12% of the user's trading volume. This is `null` when the user has zero volume but nonzero transfers (an undefined/infinite share), in which case `transfersDetected` is still `true`.
 
 Users are ordered by `lastTradeTimestamp` descending (most recently active first).
 
@@ -892,6 +894,8 @@ The `realizedProfit`, `unrealizedProfit`, and `totalProfit` fields can be manipu
 - **Transfers in**: If a user receives leveraged tokens via transfer (not through a trade), the balance increases but no purchase cost is associated with those tokens, causing the unrealized PnL to appear as pure profit.
 
 These values are calculated based on on-chain balances and trade history, but do not account for external transfers. For our current use case this limitation is acceptable, but integrators should be aware of this behavior and avoid using these fields for critical financial calculations or auditing purposes.
+
+**Transfer detection:** To help consumers identify when the PnL fields are unreliable, each user includes a `transfersDetected` flag and a `transferShare` value. An "external" transfer is any peer-to-peer movement of leveraged tokens that is **not** part of a mint, redeem, redeem escrow, or factory distribution (i.e. transfers that do not involve the zero address, the leveraged token contract itself, or the factory). The gross size of these transfers (both sends and receives) is valued at the current exchange rate and compared against the user's total nominal volume. `transfersDetected` is `true` when that share exceeds 5%, or whenever a user has external transfers but no trading volume. Small, immaterial transfers (for example a tiny airdrop to a high-volume trader) fall below the threshold and are not flagged.
 
 **Example Request:**
 
@@ -917,7 +921,9 @@ GET https://indexing.bounce.tech/users
       "lastTradeTimestamp": 1704153600,
       "realizedProfit": 100.5,
       "unrealizedProfit": 50.25,
-      "totalProfit": 150.75
+      "totalProfit": 150.75,
+      "transfersDetected": false,
+      "transferShare": 0.0
     },
     {
       "address": "0x1234567890123456789012345678901234567890",
@@ -931,7 +937,9 @@ GET https://indexing.bounce.tech/users
       "lastTradeTimestamp": 1704067200,
       "realizedProfit": 500.0,
       "unrealizedProfit": 200.0,
-      "totalProfit": 700.0
+      "totalProfit": 700.0,
+      "transfersDetected": true,
+      "transferShare": 0.35
     }
   ],
   "error": null
