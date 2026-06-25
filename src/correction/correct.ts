@@ -82,6 +82,11 @@ export function correct(
   opts: CorrectOptions = {}
 ): CorrectionResult {
   const K = opts.K ?? DEFAULT_K;
+  // Guard the bounded-lookback bound: a NaN / Infinity / negative K would make
+  // `holdDepth > K` silently never trip, corrupting the correctness guarantee.
+  if (!Number.isInteger(K) || K < 0) {
+    throw new Error("correct(): opts.K must be a non-negative integer");
+  }
 
   // Marker-completeness gate: a target above the committed watermark is not yet
   // marker-complete (a necessary condition for correction), so surface `raw`.

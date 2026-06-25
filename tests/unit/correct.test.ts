@@ -96,6 +96,12 @@ describe("correct() — pure bridge-rate correction (#24 §3)", () => {
     expect(b2.status).toBe("corrected"); // default K=8 still corrected
   });
 
+  it("rejects an invalid K so the lookback guarantee cannot be bypassed", () => {
+    for (const bad of [NaN, Infinity, -1, 1.5]) {
+      expect(() => correct(1n, 1n, null, [], { K: bad })).toThrow(/opts\.K/);
+    }
+  });
+
   it("hold with no trusted predecessor is unavailable", () => {
     const r = correct(100n, 999n, null, [marker(100n)]);
     expect(r.status).toBe("unavailable");
